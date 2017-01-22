@@ -92,13 +92,12 @@ void mat33Isometry(double theta, double x, double y, double isom[3][3]) {
 /* Given a length-1 3D vector axis and an angle theta (in radians), builds the 
 rotation matrix for the rotation about that axis through that angle. Based on 
 Rodrigues' rotation formula R = I + (sin theta) U + (1 - cos theta) U^2. */
-void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3])
+void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3]){}
 
 /* Given two length-1 3D vectors u, v that are perpendicular to each other. 
 Given two length-1 3D vectors a, b that are perpendicular to each other. Builds 
 the rotation matrix that rotates u to a and v to b. */
-void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3], 
-        double rot[3][3])
+void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3], double rot[3][3]){}
 
 /* 4x4Matrices */
 
@@ -122,8 +121,7 @@ void mat441Multiply(double m[4][4], double v[4], double mTimesV[4]){
 
 /* Given a rotation and a translation, forms the 4x4 homogeneous matrix 
 representing the rotation followed in time by the translation. */
-void mat44Isometry(double rot[3][3], double trans[3], double isom[4][4])
-{
+void mat44Isometry(double rot[3][3], double trans[3], double isom[4][4]){
     isom[0][0]=rot[0][0];
     isom[0][1]=rot[0][1];
     isom[0][2]=rot[0][2];
@@ -150,5 +148,25 @@ void mat44Isometry(double rot[3][3], double trans[3], double isom[4][4])
 representing the inverse translation followed in time by the inverse rotation. 
 That is, the isom produced by this function is the inverse to the isom 
 produced by mat44Isometry on the same inputs. */
-void mat44InverseIsometry(double rot[3][3], double trans[3], 
-        double isom[4][4])
+void mat44InverseIsometry(double rot[3][3], double trans[3], double isom[4][4]){
+    isom[0][0]=rot[0][0];
+    isom[0][1]=rot[0][1];
+    isom[0][2]=rot[0][2];
+    isom[0][3]=(-rot[0][0]*trans[0])-(rot[1][0]*trans[1])-(rot[2][0]*trans[2]);
+
+    isom[1][0]=rot[1][0];
+    isom[1][1]=rot[1][1];
+    isom[1][2]=rot[1][2];
+    isom[1][3]=(-rot[0][1]*trans[0])-(rot[1][1]*trans[1])-(rot[2][1]*trans[2]);
+
+
+    isom[2][0]=rot[2][0];
+    isom[2][1]=rot[2][1];
+    isom[2][2]=rot[2][2];
+    isom[2][3]=(-rot[0][2]*trans[0])-(rot[1][2]*trans[1])-(rot[2][2]*trans[2]);
+
+    isom[3][0] = 0;
+    isom[3][1] = 0;
+    isom[3][2] = 0;
+    isom[3][3] = 1;
+}
