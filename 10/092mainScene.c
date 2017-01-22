@@ -95,7 +95,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 }
 
 #include "090triangle.c"
-#include "090mesh.c"
+#include "100mesh.c"
 #include "090scene.c"
 sceneNode scene0;
 sceneNode scene1;
