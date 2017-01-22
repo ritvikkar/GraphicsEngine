@@ -154,8 +154,8 @@ int main(void) {
     
     else {
         texInitializeFile(tex[0], "pic1.jpg");
-        texInitializeFile(tex[1], "pic2.jpg");
-        texInitializeFile(tex[2], "pic3.png");
+        //texInitializeFile(tex[1], "pic2.jpg");
+        //texInitializeFile(tex[2], "pic3.png");
         printf("Texture works\n");
 
         if (texInitializeFile(tex[0], "pic1.jpg") !=0 /*||

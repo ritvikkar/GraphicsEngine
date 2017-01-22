@@ -13,7 +13,7 @@
 #include "000pixel.h"
 
 #include "090matrix.c"
-#include "071vector.c"
+#include "100vector.c"
 #include "040texture.c"
 #include "090renderer.c"
 
@@ -154,9 +154,8 @@ int main(void) {
     
     else {
         texInitializeFile(tex[0], "pic1.jpg");
-        texInitializeFile(tex[1], "pic2.jpg");
-        texInitializeFile(tex[2], "pic3.png");
-        printf("Texture works\n");
+        //texInitializeFile(tex[1], "pic2.jpg");
+        //texInitializeFile(tex[2], "pic3.png");
 
         if (texInitializeFile(tex[0], "pic1.jpg") !=0 /*||
             texInitializeFile(tex[1], "pic2.jpg") !=0 ||
