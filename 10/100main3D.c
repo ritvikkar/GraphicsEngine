@@ -22,11 +22,12 @@
 
 #define renATTRX 0
 #define renATTRY 1
-#define renATTRS 2
-#define renATTRT 3
-#define renATTRR 4
-#define renATTRG 5
-#define renATTRB 6
+#define renATTRZ 2
+#define renATTRS 3
+#define renATTRT 4
+#define renATTRR 5
+#define renATTRG 6
+#define renATTRB 7
 
 #define renVARYX 0
 #define renVARYY 1
@@ -36,13 +37,13 @@
 #define renVARYG 5
 #define renVARYB 6
 
-#define renUNIFR 0
-#define renUNIFG 1
-#define renUNIFB 2
-#define renUNIFTHETA 0
-#define renUNIFTRANSX 1
-#define renUNIFTRANSY 2
-#define renUNIFISOMETRY 3
+#define renUNIFRHO 0
+#define renUNIFPHI 1
+#define renUNIFTHETA 2
+#define renUNIFTRANSX 3
+#define renUNIFTRANSY 4
+#define renUNIFTRANSZ 5
+#define renUNIFISOMETRY 6
 
 #define renTEXR 0
 #define renTEXG 1
@@ -51,25 +52,32 @@
 renRenderer *ren;
 
 texTexture *tex[3];
-double unif[12] = {0.0,256.0,256.0};
+double unif[3+3+1+16] = 
+                {1.0,1.0,1.0,    //RHO PHI THETA
+                 0.0,0.0,0.0,    //XYZ
+                 0.0,            //ISOMETRY
+                 1.0,0.0,0.0,0.0,//4x4 rotational matrix
+                 0.0,1.0,0.0,0.0,
+                 0.0,0.0,1.0,0.0,
+                 0.0,0.0,0.0,1.0};
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
         double vary[], double rgb[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
-    rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR] * vary[renVARYR];
-    rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG] * vary[renVARYG];
-    rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB] * vary[renVARYB];
+    rgb[0] = tex[0]->sample[renTEXR] * vary[renVARYR];
+    rgb[1] = tex[0]->sample[renTEXG] * vary[renVARYG];
+    rgb[2] = tex[0]->sample[renTEXB] * vary[renVARYB];
 }
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
-    double xy [3] = {attr[renATTRX],attr[renATTRY],1};
-    double rxy[3];
-    mat331Multiply((double(*)[3])(&unif[renUNIFISOMETRY]),xy,rxy);
-    vary[renVARYX] = rxy[0];
-    vary[renVARYY] = rxy[1];
+    double attrXYZ[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
+    double RXYZ[4];
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),attrXYZ,RXYZ);
+    vary[renVARYX] = RXYZ[0];
+    vary[renVARYY] = RXYZ[1];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
