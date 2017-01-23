@@ -49,9 +49,10 @@
 #define renTEXG 1
 #define renTEXB 2
 
-renRenderer *ren;
+renRenderer ren;
 
-texTexture *tex[3];
+texTexture *tex[1];
+
 double unif[3+3+1+16] = 
                 {1.0,1.0,1.0,    //RHO PHI THETA
                  0.0,0.0,0.0,    //XYZ
@@ -156,16 +157,17 @@ int main(void) {
     /* Make a 512 x 512 window with the title 'Pixel Graphics'. This function 
     returns 0 if no error occurred. */ 
     ren = (renRenderer *)malloc(sizeof(renRenderer));
-    tex[0] = (texTexture *)malloc(sizeof(texTexture));
     if (pixInitialize(512, 512, "Pixel Graphics") != 0)
         return 1;
     
     else {
-        texInitializeFile(tex[0], "pic1.jpg");
-        //texInitializeFile(tex[1], "pic2.jpg");
-        //texInitializeFile(tex[2], "pic3.png");
+        texTexture texture0, texture1, texture2;
+        texInitializeFile(&texture0, "pic1.jpg");
+        //texInitializeFile(&texture1, "pic2.jpg");
+        //texInitializeFile(&texture2, "pic3.png");
+        tex[0] = &texture0;
 
-        if (texInitializeFile(tex[0], "pic1.jpg") !=0 /*||
+        if (texInitializeFile(&texture0, "pic1.jpg")!=0 /*||
             texInitializeFile(tex[1], "pic2.jpg") !=0 ||
             texInitializeFile(tex[2], "pic3.png") !=0*/)
         {
