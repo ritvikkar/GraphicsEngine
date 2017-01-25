@@ -1,5 +1,5 @@
 /*
- * 090mainScene.c
+ * 100main3D.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -110,7 +110,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     }
 }
 
-#include "triangle.h"
+#include "092triangle.c"
 #include "100mesh.c"
 #include "090scene.c"
 sceneNode scene0;
