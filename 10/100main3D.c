@@ -155,13 +155,12 @@ void handleKeyDown(int key, int shiftIsDown, int controlIsDown,
 }
 
 void handleTimeStep(double oldTime, double newTime) {
-  if (floor(newTime) - floor(oldTime) >= 1.0)
-    printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
-    unif[0] = unif[0] + 0.01;
-    unif[1] = 256;
-    unif[2] = 256;
+    if (floor(newTime) - floor(oldTime) >= 1.0)
+        printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    sceneSetUniform(&scene0,&ren,unif);
+    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.05;
+    //scene0.unif[renUNIFPHI] = scene0.unif[renUNIFPHI] + 0.05;
+
     draw();
 }
 
@@ -202,6 +201,8 @@ int main(void) {
         sceneInitialize(&scene0,&ren,unif1,tex,&mesh0,NULL,NULL);
         //sceneInitialize(&scene1,&ren,unif2,tex,&mesh1,NULL,NULL);
         //sceneInitialize(&scene2,&ren,unif3,tex,&mesh2,NULL,NULL);
+
+        sceneSetUniform(&scene0,&ren,unif1);
 
         sceneSetTexture(&scene0,&ren,0,tex[0]);
         //sceneSetTexture(&scene2,&ren,0,tex[0]);

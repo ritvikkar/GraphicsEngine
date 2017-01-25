@@ -14,8 +14,8 @@
 
 #include "100vector.c"
 #include "100matrix.c"
-#include "040texture.c"
 #include "110depth.c"
+#include "040texture.c"
 #include "110renderer.c"
 
 #define renVARYDIMBOUND 16
@@ -32,11 +32,12 @@
 
 #define renVARYX 0
 #define renVARYY 1
-#define renVARYS 2
-#define renVARYT 3
-#define renVARYR 4
-#define renVARYG 5
-#define renVARYB 6
+#define renVARYZ 2
+#define renVARYS 3
+#define renVARYT 4
+#define renVARYR 5
+#define renVARYG 6
+#define renVARYB 7
 
 #define renUNIFRHO 0
 #define renUNIFPHI 1
@@ -51,8 +52,9 @@
 #define renTEXB 2
 
 renRenderer ren;
-
 texTexture *tex[1];
+depthBuffer dep;
+
 double unif[3+3+16] = {0.1,0.1,0.1,     //RHO PHI THETA
                        256.0,256.0,0.0, //XYZ
                        1.0,0.0,0.0,0.0, //ISOMETRY [4x4 Matrix]
@@ -63,11 +65,12 @@ double unif[3+3+16] = {0.1,0.1,0.1,     //RHO PHI THETA
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
-        double vary[], double rgb[]) {
+        double vary[], double rgbz[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
-    rgb[0] = tex[0]->sample[renTEXR];
-    rgb[1] = tex[0]->sample[renTEXG];
-    rgb[2] = tex[0]->sample[renTEXB];
+    rgbz[0] = tex[0]->sample[renTEXR];
+    rgbz[1] = tex[0]->sample[renTEXG];
+    rgbz[2] = tex[0]->sample[renTEXB];
+    rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -79,6 +82,7 @@ void transformVertex(renRenderer *ren, double unif[], double attr[],
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),attrXYZ,RtimexXYZ);
     vary[renVARYX] = RtimexXYZ[0];
     vary[renVARYY] = RtimexXYZ[1];
+    vary[renVARYZ] = RtimexXYZ[2];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
@@ -124,6 +128,7 @@ meshMesh mesh2;
 
 //meshMesh mesh;
 void draw(void){
+    depthClearZs(&dep,-1000);
     pixClearRGB(0.0,0.0,0.0);
     //meshRender that that will call triRender
     //meshRender(&mesh,ren,unif,tex);
@@ -156,13 +161,12 @@ void handleKeyDown(int key, int shiftIsDown, int controlIsDown,
 }
 
 void handleTimeStep(double oldTime, double newTime) {
-  if (floor(newTime) - floor(oldTime) >= 1.0)
-    printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
-    unif[0] = unif[0] + 0.01;
-    unif[1] = 256;
-    unif[2] = 256;
+    if (floor(newTime) - floor(oldTime) >= 1.0)
+        printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    sceneSetUniform(&scene0,&ren,unif);
+    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.05;
+    //scene0.unif[renUNIFPHI] = scene0.unif[renUNIFPHI] + 0.05;
+
     draw();
 }
 
@@ -191,6 +195,8 @@ int main(void) {
         ren.colorPixel = colorPixel;
         ren.transformVertex = transformVertex;
         ren.updateUniform = updateUniform;
+        ren.depth = &dep;
+
         //initilize all the renderer values        
         meshInitializeBox(&mesh0, -50.0,50.0,-50.0,50.0,-50,50);
         //meshInitializeRectangle(&mesh1,-50.0,50.0,-50.0,50.0);
@@ -203,6 +209,8 @@ int main(void) {
         sceneInitialize(&scene0,&ren,unif1,tex,&mesh0,NULL,NULL);
         //sceneInitialize(&scene1,&ren,unif2,tex,&mesh1,NULL,NULL);
         //sceneInitialize(&scene2,&ren,unif3,tex,&mesh2,NULL,NULL);
+
+        sceneSetUniform(&scene0,&ren,unif1);
 
         sceneSetTexture(&scene0,&ren,0,tex[0]);
         //sceneSetTexture(&scene2,&ren,0,tex[0]);

@@ -37,10 +37,12 @@ void interpolate(double a[], double b[], double c[],
     vecAdd(ren->varyDim,addPQ,a,khi);
 
     double rgbz[4];
-    ren->colorPixel(ren, unif, tex, khi, rgbz);
-
     //if rgbz[3]>depthbuffer->z the depthSetZ(buf,x[0],x[1],rgbz[3]) and do pixSetRGB
-    pixSetRGB(x[0], x[1], rgbz[0], rgbz[1], rgbz[2]);
+    if(khi[renVARYZ] > depthGetZ(ren->depth,x[0],x[1])){
+        ren->colorPixel(ren, unif, tex, khi, rgbz);
+        pixSetRGB(x[0],x[1], rgbz[0], rgbz[1], rgbz[2]);
+        depthSetZ(ren->depth,x[0],x[1],khi[renVARYZ]);
+    }
 }
 
 void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],

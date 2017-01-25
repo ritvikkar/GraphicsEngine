@@ -177,6 +177,8 @@ int meshInitializeEllipse(meshMesh *mesh, double x, double y, double rx,
 	return error;
 }
 
+
+
 /*** Convenience initializers: 3D ***/
 
 /* Assumes that attributes 0, 1, 2 are XYZ. Assumes that the vertices of the 
@@ -412,6 +414,46 @@ int meshInitializeSphere(meshMesh *mesh, double r, int layerNum, int sideNum) {
 	}
 }
 
+/* Builds a mesh for a circular cylinder with spherical caps, centered at the 
+origin, of radius r and length l > 2 * r. The sideNum and layerNum parameters 
+control the fineness of the mesh. The attributes are XYZ position, ST texture, 
+and NOP unit normal vector. The normals are smooth. Don't forget to meshDestroy 
+when finished. */
+int meshInitializeCapsule(meshMesh *mesh, double r, double l, int layerNum, 
+		int sideNum) {
+	int error, i;
+	double theta;
+	double *ts = (double *)malloc((2 * layerNum + 2) * 3 * sizeof(double));
+	if (ts == NULL)
+		return 1;
+	else {
+		double *zs = &ts[2 * layerNum + 2];
+		double *rs = &ts[4 * layerNum + 4];
+		zs[0] = -l / 2.0;
+		rs[0] = 0.0;
+		ts[0] = 0.0;
+		for (i = 1; i <= layerNum; i += 1) {
+			theta = M_PI / 2.0 * (3 + i / (double)layerNum);
+			zs[i] = -l / 2.0 + r + r * sin(theta);
+			rs[i] = r * cos(theta);
+			ts[i] = (zs[i] + l / 2.0) / l;
+		}
+		for (i = 0; i < layerNum; i += 1) {
+			theta = M_PI / 2.0 * i / (double)layerNum;
+			zs[layerNum + 1 + i] = l / 2.0 - r + r * sin(theta);
+			rs[layerNum + 1 + i] = r * cos(theta);
+			ts[layerNum + 1 + i] = (zs[layerNum + 1 + i] + l / 2.0) / l;
+		}
+		zs[2 * layerNum + 1] = l / 2.0;
+		rs[2 * layerNum + 1] = 0.0;
+		ts[2 * layerNum + 1] = 1.0;
+		error = meshInitializeRevolution(mesh, 2 * layerNum + 2, zs, rs, ts, 
+			sideNum);
+		free(ts);
+		return error;
+	}
+}
+
 /* Builds a non-closed 'landscape' mesh based on a grid of Z-values. There are 
 width * height Z-values, which arrive in the data parameter. The mesh is made 
 of (width - 1) * (height - 1) squares, each made of two triangles. The spacing 
@@ -428,7 +470,7 @@ int meshInitializeLandscape(meshMesh *mesh, int width, int height,
 		double spacing, double *data) {
 	int i, j, error;
 	int a, b, c, d;
-	double *vert;
+	double *vert, diffSWNE, diffSENW;
 	error = meshInitialize(mesh, 2 * (width - 1) * (height - 1), 
 		width * height, 3 + 2 + 3);
 	if (error == 0) {
@@ -437,10 +479,7 @@ int meshInitializeLandscape(meshMesh *mesh, int width, int height,
 			for (j = 0; j < height; j += 1) {
 				vert = meshGetVertexPointer(mesh, i * height + j);
 				vecSet(3 + 2 + 3, vert, i * spacing, j * spacing, 
-					data[i * height + j], i / (width - 1.0), 
-					j / (height - 1.0), 0.0, 0.0, 0.0);
-				/*vecSet(3 + 2 + 3, vert, i * spacing, j * spacing, 
-					data[i * height + j], (double)i, (double)j, 0.0, 0.0, 0.0);*/
+					data[i * height + j], (double)i, (double)j, 0.0, 0.0, 0.0);
 			}
 		/* Build the triangles. */
 		for (i = 0; i < width - 1; i += 1)
@@ -450,8 +489,17 @@ int meshInitializeLandscape(meshMesh *mesh, int width, int height,
 				b = (i + 1) * height + j;
 				c = (i + 1) * height + (j + 1);
 				d = i * height + (j + 1);
-				meshSetTriangle(mesh, index, a, b, c);
-				meshSetTriangle(mesh, index + 1, a, c, d);
+				diffSWNE = fabs(meshGetVertexPointer(mesh, a)[2] - 
+					meshGetVertexPointer(mesh, c)[2]);
+				diffSENW = fabs(meshGetVertexPointer(mesh, b)[2] - 
+					meshGetVertexPointer(mesh, d)[2]);
+				if (diffSENW < diffSWNE) {
+					meshSetTriangle(mesh, index, d, a, b);
+					meshSetTriangle(mesh, index + 1, b, c, d);
+				} else {
+					meshSetTriangle(mesh, index, a, b, c);
+					meshSetTriangle(mesh, index + 1, a, c, d);
+				}
 			}
 		/* Set the normals. */
 		meshSmoothNormals(mesh, 5);
@@ -459,3 +507,47 @@ int meshInitializeLandscape(meshMesh *mesh, int width, int height,
 	return error;
 }
 
+/* Given a landscape, such as that built by meshInitializeLandscape. Builds a 
+new landscape mesh by extracting triangles based on how horizontal they are. If 
+noMoreThan is true, then triangles are kept that deviate from horizontal by no more than angle. If noMoreThan is false, then triangles are kept that deviate 
+from horizontal by more than angle. Don't forget to call meshDestroy when 
+finished. Warning: May contain extraneous vertices not used by any triangle. */
+int meshInitializeDissectedLandscape(meshMesh *mesh, meshMesh *land, 
+		double angle, int noMoreThan) {
+	int error, i, j = 0, triNum = 0;
+	int *tri, *newTri;
+	double normal[3];
+	/* Count the triangles that are nearly horizontal. */
+	for (i = 0; i < land->triNum; i += 1) {
+		tri = meshGetTrianglePointer(land, i);
+		meshTrueNormal(meshGetVertexPointer(land, tri[0]), 
+			meshGetVertexPointer(land, tri[1]), 
+			meshGetVertexPointer(land, tri[2]), normal);
+		if ((noMoreThan && normal[2] >= cos(angle)) || 
+				(!noMoreThan && normal[2] < cos(angle)))
+			triNum += 1;
+	}
+	error = meshInitialize(mesh, triNum, land->vertNum, 3 + 2 + 3);
+	if (error == 0) {
+		/* Copy all of the vertices. */
+		vecCopy(land->vertNum * (3 + 2 + 3), land->vert, mesh->vert);
+		/* Copy just the horizontal triangles. */
+		for (i = 0; i < land->triNum; i += 1) {
+			tri = meshGetTrianglePointer(land, i);
+			meshTrueNormal(meshGetVertexPointer(land, tri[0]), 
+				meshGetVertexPointer(land, tri[1]), 
+				meshGetVertexPointer(land, tri[2]), normal);
+			if ((noMoreThan && normal[2] >= cos(angle)) || 
+					(!noMoreThan && normal[2] < cos(angle))) {
+				newTri = meshGetTrianglePointer(mesh, j);
+				newTri[0] = tri[0];
+				newTri[1] = tri[1];
+				newTri[2] = tri[2];
+				j += 1;
+			}
+		}
+		/* Reset the normals, to make the cliff edges appear sharper. */
+		meshSmoothNormals(mesh, 5);
+	}
+	return error;
+}
