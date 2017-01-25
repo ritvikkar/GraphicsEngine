@@ -48,19 +48,19 @@
 #define renTEXG 1
 #define renTEXB 2
 
-renRenderer *ren;
+renRenderer ren;
 
-texTexture *tex[3];
-double unif[12] = {0.0,256.0,256.0};
+texTexture *tex[1];
+double unif[12] = {0.0,0.0,0.0};
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
         double vary[], double rgb[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
-    rgb[0] = tex[0]->sample[renTEXR] * unif[renUNIFR] * vary[renVARYR];
-    rgb[1] = tex[0]->sample[renTEXG] * unif[renUNIFG] * vary[renVARYG];
-    rgb[2] = tex[0]->sample[renTEXB] * unif[renUNIFB] * vary[renVARYB];
+    rgb[0] = tex[0]->sample[renTEXR];
+    rgb[1] = tex[0]->sample[renTEXG];
+    rgb[2] = tex[0]->sample[renTEXB];
 }
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
@@ -94,7 +94,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     }
 }
 
-#include "090triangle.c"
+#include "092triangle.c"
 #include "100mesh.c"
 #include "090scene.c"
 sceneNode scene0;
@@ -112,7 +112,7 @@ void draw(void){
     //meshRender(&mesh,ren,unif,tex);
       
     //sceneRender that will call meshRender
-    sceneRender(&scene2,ren,NULL);
+    sceneRender(&scene0,&ren,NULL);
 
     //triRender(ren, unif, tex, a,b,c);
 
@@ -123,10 +123,15 @@ void handleKeyDown(int key, int shiftIsDown, int controlIsDown,
     if(key == GLFW_KEY_ENTER)
     {
         if(tex[0]->filtering == texQUADRATIC)
+        {
             texSetFiltering(tex[0], texNEAREST);
+            draw();
+        }
             
-        else
+        else{
             texSetFiltering(tex[0], texQUADRATIC);
+            draw();
+        }
     }
 
     printf("key down %d, shift %d, control %d, altOpt %d, supComm %d\n",
@@ -136,54 +141,58 @@ void handleKeyDown(int key, int shiftIsDown, int controlIsDown,
 void handleTimeStep(double oldTime, double newTime) {
   if (floor(newTime) - floor(oldTime) >= 1.0)
     printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
-    unif[0] = unif[0] + 0.1;
+    unif[0] = unif[0] + 0.01;
     unif[1] = 256;
     unif[2] = 256;
 
-    sceneSetUniform(&scene2,ren,unif);
+    sceneSetUniform(&scene0,&ren,unif);
     draw();
 }
 
 int main(void) {
     /* Make a 512 x 512 window with the title 'Pixel Graphics'. This function 
     returns 0 if no error occurred. */ 
-    ren = (renRenderer *)malloc(sizeof(renRenderer));
-    tex[0] = (texTexture *)malloc(sizeof(texTexture));
     if (pixInitialize(512, 512, "Pixel Graphics") != 0)
         return 1;
     
     else {
-        texInitializeFile(tex[0], "pic1.jpg");
-        //texInitializeFile(tex[1], "pic2.jpg");
-        //texInitializeFile(tex[2], "pic3.png");
+        texTexture texture0, texture1, texture2;
+        texInitializeFile(&texture0, "pic.jpg");
+        //texInitializeFile(&texture1, "pic2.jpg");
+        //texInitializeFile(&texture2, "pic3.png");
+        tex[0] = &texture0;
 
-        if (texInitializeFile(tex[0], "pic1.jpg") !=0 /*||
+        if (texInitializeFile(&texture0, "pic.jpg")!=0 /*||
             texInitializeFile(tex[1], "pic2.jpg") !=0 ||
             texInitializeFile(tex[2], "pic3.png") !=0*/)
         {
             return 1;
         }
 
-        ren->attrDim = 4; ren->varyDim = 4; 
-        ren->unifDim = 12; ren->texNum = 1; 
-        ren->colorPixel = colorPixel;
-        ren->transformVertex = transformVertex;
-        ren->updateUniform = updateUniform;
+        ren.attrDim = 4; ren.varyDim = 4; 
+        ren.unifDim = 12; ren.texNum = 1; 
+        ren.colorPixel = colorPixel;
+        ren.transformVertex = transformVertex;
+        ren.updateUniform = updateUniform;
 
-        //initilize all the renderer values
-        meshInitializeRectangle(&mesh0,0.0,512.0,0.0,512.0);
-        meshInitializeEllipse(&mesh1, 300.0, 300.0, 30.0, 30.0, 50);
-        meshInitializeEllipse(&mesh2, 0.0, 0.0, 50.0, 50.0, 50);
+        //initilize all the renderer values        
+        meshInitializeEllipse(&mesh0, 0, 0, 100.0, 100.0, 100);
+        meshInitializeRectangle(&mesh1,-50.0,50.0,-50.0,50.0);
+        //meshInitializeEllipse(&mesh2, 0.0, 0.0, 50.0, 50.0, 100);
 
-        sceneInitialize(&scene0,ren,unif,tex,&mesh0,NULL,NULL);
-        sceneInitialize(&scene1,ren,unif,tex,&mesh1,NULL,NULL);
-        sceneInitialize(&scene2,ren,unif,tex,&mesh2,NULL,NULL);
+        double unif1[12] ={0.0,256.0,256.0};
+        double unif2[12] ={0.0,-100.0,-100.0};
+        //double unif3[12] ={0.0,50.0,-50.0};
+
+        sceneInitialize(&scene0,&ren,unif1,tex,&mesh0,NULL,NULL);
+        sceneInitialize(&scene1,&ren,unif2,tex,&mesh1,NULL,NULL);
+        //sceneInitialize(&scene2,&ren,unif3,tex,&mesh2,NULL,NULL);
         
-        sceneSetTexture(&scene1,ren,0,tex[0]);
-        sceneSetTexture(&scene2,ren,0,tex[0]);
+        sceneSetTexture(&scene1,&ren,0,tex[0]);
+        //sceneSetTexture(&scene2,&ren,0,tex[0]);
 
         sceneAddChild(&scene0,&scene1);
-        sceneAddChild(&scene1,&scene2);
+        //sceneAddChild(&scene1,&scene2);
         //meshInitializeRectangle(&mesh,0,256,0,256);
         draw();
 
@@ -193,7 +202,7 @@ int main(void) {
         texDestroy(tex[0]);
         meshDestroy(&mesh0);
         meshDestroy(&mesh1);
-        meshDestroy(&mesh2);
+        //meshDestroy(&mesh2);
         sceneDestroyRecursively(&scene0);
         return 0;
     }

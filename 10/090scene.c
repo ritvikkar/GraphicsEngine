@@ -78,6 +78,7 @@ node's uniform vector. */
 void sceneRender(sceneNode *node, renRenderer *ren, double *unifParent) {
 	ren->updateUniform(ren,node->unif,unifParent);
 	meshRender(node->mesh,ren,node->unif,node->tex);
+
 	if (node->firstChild != NULL){
 		sceneRender(node->firstChild,ren,node->unif);
 	}

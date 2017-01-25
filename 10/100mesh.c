@@ -107,12 +107,13 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 	
 	else{
 		int i;
-	
+
 		for (i = 0; i < mesh->vertNum; i++) {
 			double *vertex = meshGetVertexPointer(mesh, i);
 			double *vary = meshGetVaryPointer(mesh, ren, i);
 			ren->transformVertex(ren, unif, vertex, vary);
 		}
+
 
 		for (i = 0; i < mesh->triNum; i++)
 		{
