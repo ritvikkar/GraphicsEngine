@@ -40,7 +40,7 @@ void interpolate(double a[], double b[], double c[],
     ren->colorPixel(ren, unif, tex, khi, rgbz);
 
     //if rgbz[3]>depthbuffer->z the depthSetZ(buf,x[0],x[1],rgbz[3]) and do pixSetRGB
-    pixSetRGB(x[0], x[1], rgb[0], rgb[1], rgb[2]);
+    pixSetRGB(x[0], x[1], rgbz[0], rgbz[1], rgbz[2]);
 }
 
 void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
