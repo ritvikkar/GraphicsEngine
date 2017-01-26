@@ -1,5 +1,5 @@
 /*
- * 110mainDepth.c
+ * 120mainCamera.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -16,7 +16,7 @@
 #include "100matrix.c"
 #include "110depth.c"
 #include "040texture.c"
-#include "110renderer.c"
+#include "120renderer.c"
 
 #define renVARYDIMBOUND 16
 #define renVERTNUMBOUND 1000
@@ -55,16 +55,24 @@ renRenderer ren;
 texTexture *tex[1];
 depthBuffer dep;
 
-double unif[22] = {1.0,0.3,2.3,
+double unif[38] = {1.0,0.3,2.3,
                    0.0,0.0,0.0, 
-                   1.0,0.0,0.0,0.0,
+                   1.0,0.0,0.0,0.0, //ISOMETRY
+                   0.0,1.0,0.0,0.0,
+                   0.0,0.0,1.0,0.0,
+                   0.0,0.0,0.0,1.0,
+                   1.0,0.0,0.0,0.0, //CAMERA
                    0.0,1.0,0.0,0.0,
                    0.0,0.0,1.0,0.0,
                    0.0,0.0,0.0,1.0};
 
-double unif2[22] = {1.0,0.0,0.0,
-                    250.0,250.0,0.0, 
-                    1.0,0.0,0.0,0.0,
+double unif2[38] = {1.0,0.0,0.0,
+                    250.0,250.0,0.0,  
+                    1.0,0.0,0.0,0.0, //ISOMETRY
+                    0.0,1.0,0.0,0.0,
+                    0.0,0.0,1.0,0.0,
+                    0.0,0.0,0.0,1.0,
+                    1.0,0.0,0.0,0.0, //CAMERA
                     0.0,1.0,0.0,0.0,
                     0.0,0.0,1.0,0.0,
                     0.0,0.0,0.0,1.0};
