@@ -177,10 +177,10 @@ int main(void) {
         pixSetKeyUpHandler(handleKeyUp);
 
         texTexture texture0, texture1, texture2;
-        texInitializeFile(&texture0, "pic 2.jpg");
+        texInitializeFile(&texture0, "pic0.jpg");
         tex[0] = &texture0;
 
-        if (texInitializeFile(&texture0, "pic 2.jpg")!=0 /*||
+        if (texInitializeFile(&texture0, "pic0.jpg")!=0 /*||
             texInitializeFile(tex[1], "pic2.jpg") !=0 ||
             texInitializeFile(tex[2], "pic3.png") !=0*/)
         {
