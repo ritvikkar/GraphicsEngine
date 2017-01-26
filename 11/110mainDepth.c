@@ -55,12 +55,19 @@ renRenderer ren;
 texTexture *tex[1];
 depthBuffer dep;
 
-double unif[3+3+16] = {0.1,0.1,0.1,     //RHO PHI THETA
-                       256.0,256.0,0.0, //XYZ
-                       1.0,0.0,0.0,0.0, //ISOMETRY [4x4 Matrix]
-                       0.0,1.0,0.0,0.0,
-                       0.0,0.0,1.0,0.0,
-                       0.0,0.0,0.0,1.0};
+double unif[22] = {1.0,0.3,2.3,
+                   0.0,0.0,0.0, 
+                   1.0,0.0,0.0,0.0,
+                   0.0,1.0,0.0,0.0,
+                   0.0,0.0,1.0,0.0,
+                   0.0,0.0,0.0,1.0};
+
+double unif2[22] = {1.0,0.0,0.0,
+                    250.0,250.0,0.0, 
+                    1.0,0.0,0.0,0.0,
+                    0.0,1.0,0.0,0.0,
+                    0.0,0.0,1.0,0.0,
+                    0.0,0.0,0.0,1.0};
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
@@ -77,12 +84,12 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 void transformVertex(renRenderer *ren, double unif[], double attr[],
         double vary[]) {
     /* For now, just copy attr to varying. Baby steps. */
-    double attrXYZ[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
-    double RtimexXYZ[4];
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),attrXYZ,RtimexXYZ);
-    vary[renVARYX] = RtimexXYZ[0];
-    vary[renVARYY] = RtimexXYZ[1];
-    vary[renVARYZ] = RtimexXYZ[2];
+    double xyz1[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
+    double RtimesXYZ[4];
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),xyz1,RtimesXYZ);
+    vary[renVARYX] = RtimesXYZ[0];
+    vary[renVARYY] = RtimesXYZ[1];
+    vary[renVARYZ] = RtimesXYZ[2];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
@@ -95,7 +102,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double u[3];
     double rot[3][3];
 
-    vec3Spherical(unif[renUNIFRHO],unif[renUNIFPHI],unif[renUNIFTHETA],u);
+    vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u);
     mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);
 
     if (unifParent == NULL){
@@ -129,35 +136,24 @@ meshMesh mesh2;
 //meshMesh mesh;
 void draw(void){
     depthClearZs(&dep,-1000);
-    pixClearRGB(0.0,0.0,0.0);
-    //meshRender that that will call triRender
-    //meshRender(&mesh,ren,unif,tex);
-      
+    pixClearRGB(0.0,0.0,0.0);      
     //sceneRender that will call meshRender
     sceneRender(&scene0,&ren,NULL);
-
-    //triRender(ren, unif, tex, a,b,c);
-
 }
 
-void handleKeyDown(int key, int shiftIsDown, int controlIsDown,
-        int altOptionIsDown, int superCommandIsDown){
-    if(key == GLFW_KEY_ENTER)
-    {
-        if(tex[0]->filtering == texQUADRATIC)
-        {
+void handleKeyUp(int key, int shiftIsDown, int controlIsDown,
+    int altOptionIsDown, int superCommandIsDown) {
+    if (key == GLFW_KEY_ENTER) {
+        if (tex[0]->filtering == texQUADRATIC) {
             texSetFiltering(tex[0], texNEAREST);
-            draw();
-        }
-            
-        else{
+        }else {
             texSetFiltering(tex[0], texQUADRATIC);
-            draw();
         }
     }
 
-    printf("key down %d, shift %d, control %d, altOpt %d, supComm %d\n",
-        key, shiftIsDown, controlIsDown, altOptionIsDown, superCommandIsDown);
+    printf("key up %d, shift %d, control %d, altOpt %d, supComm %d\n",
+    key, shiftIsDown, controlIsDown, altOptionIsDown, superCommandIsDown);
+
 }
 
 void handleTimeStep(double oldTime, double newTime) {
@@ -177,55 +173,54 @@ int main(void) {
         return 1;
     
     else {
+        pixSetTimeStepHandler(handleTimeStep);
+        pixSetKeyUpHandler(handleKeyUp);
+
         texTexture texture0, texture1, texture2;
-        texInitializeFile(&texture0, "pic.jpg");
-        //texInitializeFile(&texture1, "pic2.jpg");
-        //texInitializeFile(&texture2, "pic3.png");
+        texInitializeFile(&texture0, "pic 2.jpg");
         tex[0] = &texture0;
 
-        if (texInitializeFile(&texture0, "pic.jpg")!=0 /*||
+        if (texInitializeFile(&texture0, "pic 2.jpg")!=0 /*||
             texInitializeFile(tex[1], "pic2.jpg") !=0 ||
             texInitializeFile(tex[2], "pic3.png") !=0*/)
         {
             return 1;
         }
 
-        ren.attrDim = 8; ren.varyDim = 8; 
+        //initilize all the renderer values        
+        ren.attrDim = 8; ren.varyDim = 4; 
         ren.unifDim = 22; ren.texNum = 1; 
         ren.colorPixel = colorPixel;
         ren.transformVertex = transformVertex;
         ren.updateUniform = updateUniform;
         ren.depth = &dep;
+        
+        depthInitialize(&dep,512,512);
 
-        //initilize all the renderer values        
-        meshInitializeBox(&mesh0, -50.0,50.0,-50.0,50.0,-50,50);
-        //meshInitializeRectangle(&mesh1,-50.0,50.0,-50.0,50.0);
-        //meshInitializeEllipse(&mesh2, 0.0, 0.0, 50.0, 50.0, 100);
+        meshInitializeBox(&mesh0, 150.0, 250.0, 150.0, 250.0, 150.0, 250.0);
+        //meshInitializeSphere(&mesh1, 30, 20, 20);
+        sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
+        //sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);
 
-        double unif1[12] ={0.0,256.0,256.0};
-        //double unif2[12] ={0.0,-100.0,-100.0};
-        //double unif3[12] ={0.0,50.0,-50.0};
+        //double unif1[22] ={0.0,256.0,256.0};
+        
+        double unif2[22] = {0.0,256.0,256.0,
+                            250.0,250.0,0.0, 
+                            1.0,0.0,0.0,0.0,
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            0.0,0.0,0.0,1.0};
 
-        sceneInitialize(&scene0,&ren,unif1,tex,&mesh0,NULL,NULL);
-        //sceneInitialize(&scene1,&ren,unif2,tex,&mesh1,NULL,NULL);
-        //sceneInitialize(&scene2,&ren,unif3,tex,&mesh2,NULL,NULL);
-
-        sceneSetUniform(&scene0,&ren,unif1);
+        sceneSetUniform(&scene0,&ren,unif2);
+        //sceneAddChild(&scene0,&scene1);
 
         sceneSetTexture(&scene0,&ren,0,tex[0]);
-        //sceneSetTexture(&scene2,&ren,0,tex[0]);
-        //sceneAddChild(&scene0,&scene1);
-        //sceneAddChild(&scene1,&scene2);
-        //meshInitializeRectangle(&mesh,0,256,0,256);
 
         draw();
-
-        pixSetTimeStepHandler(handleTimeStep);
-        pixSetKeyDownHandler(handleKeyDown);
         pixRun();
         texDestroy(tex[0]);
         meshDestroy(&mesh0);
-        meshDestroy(&mesh1);
+        //meshDestroy(&mesh1);
         //meshDestroy(&mesh2);
         sceneDestroyRecursively(&scene0);
         return 0;
