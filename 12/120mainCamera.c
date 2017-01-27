@@ -190,7 +190,7 @@ void handleTimeStep(double oldTime, double newTime) {
     draw();
 }
 
-void initilize(void){
+int initilize(void){
     texTexture texture0, texture1, texture2;
     texInitializeFile(&texture0, "pic.jpg");
     tex[0] = &texture0;
@@ -242,6 +242,7 @@ void initilize(void){
     //sceneAddChild(&scene0,&scene1);
 
     sceneSetTexture(&scene0,&ren,0,tex[0]);
+    return 0;
 }
 
 int main(void) {
