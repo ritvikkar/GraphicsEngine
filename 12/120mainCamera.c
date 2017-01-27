@@ -109,7 +109,7 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double u[3];
     double rot[3][3];
-
+    ren.viewing
     vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u);
     mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);
 
@@ -117,8 +117,9 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
         nine numbers. We use '(double(*)[3])' to cast it to a 3x3 matrix. */
-        double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
-        mat44Isometry(rot, trans, (double(*)[4])(&unif[renUNIFISOMETRY]));
+        /*double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
+        mat44Isometry(rot, trans, (double(*)[4])(&unif[renUNIFISOMETRY]));*/
+        renUpdateViewing(&ren);
     }
 
     else {
@@ -144,6 +145,7 @@ meshMesh mesh2;
 //meshMesh mesh;
 void draw(void){
     depthClearZs(&dep,-1000);
+    renUpdateViewing(&ren);
     pixClearRGB(0.0,0.0,0.0);      
     //sceneRender that will call meshRender
     sceneRender(&scene0,&ren,NULL);
