@@ -190,7 +190,7 @@ void handleTimeStep(double oldTime, double newTime) {
     draw();
 }
 
-int initilize(void){
+void initilize(void){
     texTexture texture0, texture1, texture2;
     texInitializeFile(&texture0, "pic.jpg");
     tex[0] = &texture0;
@@ -254,7 +254,8 @@ int main(void) {
         pixSetTimeStepHandler(handleTimeStep);
         pixSetKeyUpHandler(handleKeyUp);
 
-        //initilize all the renderer values        
+        //initilize all the renderer values 
+        initilize();       
         draw();
         pixRun();
         texDestroy(tex[0]);
