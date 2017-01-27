@@ -39,13 +39,14 @@
 #define renVARYG 6
 #define renVARYB 7
 
-#define renUNIFRHO 0
-#define renUNIFPHI 1
-#define renUNIFTHETA 2
+#define renUNIFR 0
+#define renUNIFG 1
+#define renUNIFB 2
 #define renUNIFTRANSX 3
 #define renUNIFTRANSY 4
 #define renUNIFTRANSZ 5
-#define renUNIFISOMETRY 6
+#define renUNIFTHETA 6
+#define renUNIFISOMETRY 7
 
 #define renTEXR 0
 #define renTEXG 1
@@ -55,8 +56,9 @@ renRenderer ren;
 texTexture *tex[1];
 depthBuffer dep;
 
-double unif[38] = {1.0,1.0,1.0,
-                   0.0,0.0,0.0, 
+double unif[39] = {1.0,1.0,1.0,
+                   0.0,0.0,0.0,
+                   0.0, 
                    1.0,0.0,0.0,0.0, //ISOMETRY
                    0.0,1.0,0.0,0.0,
                    0.0,0.0,1.0,0.0,
@@ -66,8 +68,9 @@ double unif[38] = {1.0,1.0,1.0,
                    0.0,0.0,1.0,0.0,
                    0.0,0.0,0.0,1.0};
 
-double unif2[38] = {1.0,0.0,0.0,
-                    250.0,250.0,0.0,  
+double unif1[39] = {0.0,0.0,0.0,
+                    250.0,250.0,0.0,
+                    0.0,  
                     1.0,0.0,0.0,0.0, //ISOMETRY
                     0.0,1.0,0.0,0.0,
                     0.0,0.0,1.0,0.0,
@@ -92,9 +95,9 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 void transformVertex(renRenderer *ren, double unif[], double attr[],
         double vary[]) {
     /* For now, just copy attr to varying. Baby steps. */
-    double ATTRXYZ1[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
+    double xyz1[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
     double RtimesXYZ[4];
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),ATTRXYZ1,RtimesXYZ);
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),xyz1,RtimesXYZ);
     vary[renVARYX] = RtimesXYZ[0];
     vary[renVARYY] = RtimesXYZ[1];
     vary[renVARYZ] = RtimesXYZ[2];
@@ -107,30 +110,32 @@ rotation-translation M described by the other uniforms. If unifParent is not
 NULL, but instead contains a rotation-translation P, then sets the uniform 
 matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
-    double u[3];
     double rot[3][3];
     int i,j;
-/*    for(i = 0; i < 4; i++){
+    for(i = 0; i < 4; i++){
         for (j = 0; j < 4; j++)
         {
-            unif[23+(i*4)+j] = ren->viewing[i][j];
+            unif[23+i*4+j] = ren->viewing[i][j];
         }
     }
-*/    
-    vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u);
-    mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);    
+    double temp[3]={1,1,1};
+    double u[3];
+    vecUnit(3,temp,u);
+    //vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u);
+    mat33AngleAxisRotation(unif[renUNIFTHETA],u,rot);
+
+    double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
 
     if (unifParent == NULL){
         /* The nine uniforms for storing the matrix start at index 
         renUNIFISOMETRY. So &unif[renUNIFISOMETRY] is an array containing those 
-        nine numbers. We use '(double(*)[3])' to cast it to a 3x3 matrix. */
-        double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
+        nine numbers. We use '(double(*)[4])' to cast it to a 4x4 matrix. */
         mat44Isometry(rot, trans, (double(*)[4])(&unif[renUNIFISOMETRY]));
+        //renUpdateViewing(ren)
     }
 
     else {
         double isometry[4][4];
-        double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
         mat44Isometry(rot, trans, isometry);
         mat444Multiply((double(*)[4])(&unifParent[renUNIFISOMETRY]), isometry,
         (double(*)[4])(&unif[renUNIFISOMETRY]));
@@ -150,7 +155,7 @@ meshMesh mesh2;
 
 void draw(void){
     depthClearZs(&dep,-1000);
-    //renUpdateViewing(&ren);
+    renUpdateViewing(&ren);
     pixClearRGB(0.0,0.0,0.0);      
     //sceneRender that will call meshRender
     sceneRender(&scene0,&ren,NULL);
@@ -200,29 +205,34 @@ int main(void) {
 
         //initilize all the renderer values        
         ren.attrDim = 8; ren.varyDim = 4; 
-        ren.unifDim = 38; ren.texNum = 1; 
+        ren.unifDim = 39; ren.texNum = 1; 
         ren.colorPixel = colorPixel;
         ren.transformVertex = transformVertex;
         ren.updateUniform = updateUniform;
         ren.depth = &dep;
-
         
+
+        double unif2[39] = {0.0,0.0,0.0,
+                            250.0,250.0,0.0,
+                            0.0,  
+                            1.0,0.0,0.0,0.0, //ISOMETRY
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            0.0,0.0,0.0,1.0,
+                            1.0,0.0,0.0,0.0, //CAMERA
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            0.0,0.0,0.0,1.0};
+
         depthInitialize(&dep,512,512);
 
-        meshInitializeBox(&mesh0, 100.0, 200.0, 100.0, 200.0, 100.0, 200.0);
+        meshInitializeBox(&mesh0, 150.0, 250.0, 150.0, 250.0, 150.0, 250.0);
         //meshInitializeSphere(&mesh1, 30, 20, 20);
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
         //sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);
 
         //double unif1[22] ={0.0,256.0,256.0};
         
-        double unif2[22] = {0.0,256.0,256.0,
-                            250.0,250.0,0.0, 
-                            1.0,0.0,0.0,0.0,
-                            0.0,1.0,0.0,0.0,
-                            0.0,0.0,1.0,0.0,
-                            0.0,0.0,0.0,1.0};
-
         sceneSetUniform(&scene0,&ren,unif2);
         //sceneAddChild(&scene0,&scene1);
 

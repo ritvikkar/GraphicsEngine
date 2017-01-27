@@ -62,6 +62,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     rgb[1] = tex[0]->sample[renTEXG];
     rgb[2] = tex[0]->sample[renTEXB];
 }
+
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], 
         double vary[]) {
