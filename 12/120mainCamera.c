@@ -186,7 +186,7 @@ void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    scene0.unif[renUNIFTHETA] = scene0.unif[renUNIFTHETA] + (newTime - oldTime);
+    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + (newTime - oldTime);
     draw();
 }
 
