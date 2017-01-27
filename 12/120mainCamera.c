@@ -58,6 +58,7 @@ renRenderer ren;
 texTexture *tex[1];
 depthBuffer dep;
 
+/**
 double unif[41] = {1.0,1.0,1.0,
                    0.0,0.0,0.0,
                    1.0,1.0,1.0,     //RHO PHI THETA
@@ -81,6 +82,7 @@ double unif2[41] = {1.0,0.0,0.0,
                     0.0,1.0,0.0,0.0,
                     0.0,0.0,1.0,0.0,
                     0.0,0.0,0.0,1.0};
+                    **/
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. */
@@ -90,7 +92,8 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
     rgbz[0] = tex[0]->sample[renTEXR];
     rgbz[1] = tex[0]->sample[renTEXG];
     rgbz[2] = tex[0]->sample[renTEXB];
-    rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+    //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+    rgbz[3] = vary[renVARYZ];
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -143,7 +146,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     {
         for (j = 0; j < 4; ++j)
         {
-            unifViewing[(i*4)+j] = ren->viewing[i][j];
+            //unifViewing[(i*4)+j] = ren->viewing[i][j];
+            unif[25 + (i*4)+j] = i == j ? 1 : 0;
         }
     }
 }
@@ -191,57 +195,6 @@ void handleTimeStep(double oldTime, double newTime) {
 }
 
 int initilize(void){
-    texTexture texture0, texture1, texture2;
-    texInitializeFile(&texture0, "pic.jpg");
-    tex[0] = &texture0;
-
-    if (texInitializeFile(&texture0, "pic.jpg")!=0)
-    {
-        return 1;
-    }
-
-    ren.attrDim = 8; ren.varyDim = 4; 
-    ren.unifDim = 41; ren.texNum = 1; 
-    ren.colorPixel = colorPixel;
-    ren.transformVertex = transformVertex;
-    ren.updateUniform = updateUniform;
-    ren.depth = &dep;
-
-    depthInitialize(&dep,512,512);
-
-    meshInitializeBox(&mesh0, 100.0, 200.0, 100.0, 200.0, 100.0, 200.0);
-    //meshInitializeSphere(&mesh1, 30, 20, 20);
-    sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
-    //sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);
-
-    //double unif1[22] ={0.0,256.0,256.0};
-    
-    double unif2[41] = {1.0,0.0,0.0,
-                        250.0,250.0,0.0,
-                        0.0,256.0,256.0, //RHO PHI THETA   
-                        1.0,0.0,0.0,0.0, //ISOMETRY
-                        0.0,1.0,0.0,0.0,
-                        0.0,0.0,1.0,0.0,
-                        0.0,0.0,0.0,1.0,
-                        1.0,0.0,0.0,0.0, //CAMERA
-                        0.0,1.0,0.0,0.0,
-                        0.0,0.0,1.0,0.0,
-                        0.0,0.0,0.0,1.0};
-
-    double axis[3]={0,0,1};
-    double u[3];
-    vecUnit(3,axis,u);
-    double rot[3][3];
-
-    mat33AngleAxisRotation(unif[renUNIFTHETA],u,ren.cameraRotation);
-
-    double trans[3] = {0, 0, 0};
-    vecCopy(3,trans,ren.cameraTranslation);
-
-    sceneSetUniform(&scene0,&ren,unif2);
-    //sceneAddChild(&scene0,&scene1);
-
-    sceneSetTexture(&scene0,&ren,0,tex[0]);
     return 0;
 }
 
@@ -252,11 +205,50 @@ int main(void) {
         return 1;
     
     else {
+
         pixSetTimeStepHandler(handleTimeStep);
         pixSetKeyUpHandler(handleKeyUp);
 
         //initilize all the renderer values 
-        initilize();       
+        texTexture texture0, texture1, texture2;
+        texInitializeFile(&texture0, "pic.jpg");
+        tex[0] = &texture0;
+
+        if (texInitializeFile(&texture0, "pic.jpg")!=0)
+        {
+            return 1;
+        }
+
+        ren.attrDim = 8; ren.varyDim = 4; 
+        ren.unifDim = 41; ren.texNum = 1; 
+        ren.colorPixel = colorPixel;
+        ren.transformVertex = transformVertex;
+        ren.updateUniform = updateUniform;
+        ren.depth = &dep;
+
+        depthInitialize(&dep,512,512);
+
+        double unif[41] = {1.0,0.0,0.0,
+                            250.0,250.0,0.0,
+                            0.0,256.0,256.0, //RHO PHI THETA   
+                            1.0,0.0,0.0,0.0, //ISOMETRY
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            0.0,0.0,0.0,1.0,
+                            1.0,0.0,0.0,0.0, //CAMERA
+                            0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0,
+                            0.0,0.0,0.0,1.0};
+
+        meshInitializeBox(&mesh0, 100.0, 200.0, 100.0, 200.0, 100.0, 200.0);
+        //meshInitializeSphere(&mesh1, 30, 20, 20);
+        sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
+        //sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);
+
+        //double unif1[22] ={0.0,256.0,256.0};
+        
+
+        //sceneSetTexture(&scene0,&ren,0,tex[0]);
         draw();
         pixRun();
         texDestroy(tex[0]);

@@ -38,8 +38,9 @@ void interpolate(double a[], double b[], double c[],
 
     double rgbz[4];
     //if rgbz[3]>depthbuffer->z the depthSetZ(buf,x[0],x[1],rgbz[3]) and do pixSetRGB
-    if(khi[renVARYZ] > depthGetZ(ren->depth,x[0],x[1])){
-        ren->colorPixel(ren, unif, tex, khi, rgbz);
+    ren->colorPixel(ren, unif, tex, khi, rgbz);
+    if(khi[renVARYZ] > depthGetZ(ren->depth, x[0], x[1])){
+        printf("%f\n", khi[renVARYZ]);
         pixSetRGB(x[0],x[1], rgbz[0], rgbz[1], rgbz[2]);
         depthSetZ(ren->depth,x[0],x[1],khi[renVARYZ]);
     }
