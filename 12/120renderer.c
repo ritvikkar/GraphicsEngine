@@ -55,5 +55,5 @@ void renLookFrom(renRenderer *ren, double position[3], double phi,
 
 /* Updates the renderer's viewing transformation, based on the camera. */
 void renUpdateViewing(renRenderer *ren) {
-	mat44Isometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
+	mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
 }
