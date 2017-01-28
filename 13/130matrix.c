@@ -164,6 +164,15 @@ void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3], doub
 
 /* 4x4Matrices */
 
+/* Copies the 4X4 matrix m to the 4X4 matrix copy. */
+void mat44Copy(double m[4][4], double copy[4][4]) {
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            copy[i][j] = m[i][j];
+        }
+    }
+}
+
 /* Multiplies m by n, placing the answer in mTimesN. */
 void mat444Multiply(double m[4][4], double n[4][4], double mTimesN[4][4]){
     int i,j;
@@ -256,15 +265,15 @@ void mat44Orthographic(double left, double right, double bottom, double top,
 /* Builds a 4x4 matrix that maps a projected viewing volume 
 [-1, 1] x [-1, 1] x [-1, 1] to screen [0, w - 1] x [0, h - 1] x [-1, 1]. */
 void mat44Viewport(double width, double height, double view[4][4]){
-    view[0][0] = w - 0.5;
+    view[0][0] = width - 0.5;
     view[0][1] = 0.0;
     view[0][2] = 0.0;
-    view[0][3] = w - 0.5;
+    view[0][3] = width - 0.5;
 
     view[1][0] = 0;
-    view[1][1] = h - 0.5;
+    view[1][1] = height - 0.5;
     view[1][2] = 0;
-    view[1][3] = h - 0.5;
+    view[1][3] = height - 0.5;
 
     view[2][0] = 0;
     view[2][1] = 0;
@@ -284,3 +293,4 @@ far plane, the frustum is the rectangle (far / near) * R. Maps the viewing
 volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Perspective(double left, double right, double bottom, double top, 
         double far, double near, double proj[4][4])
+{}

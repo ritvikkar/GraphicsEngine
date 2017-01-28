@@ -1,5 +1,5 @@
 /*
- * 120renderer.c
+ * 130renderer.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -21,6 +21,9 @@ struct renRenderer {
     double cameraRotation[3][3];
     double cameraTranslation[3];
     double viewing[4][4];
+    double projection[6];
+    int projectionType;
+    double viewport[4][4];
 };
 
 /* Sets the camera's rotation and translation, in a manner suitable for third-
@@ -59,3 +62,55 @@ void renLookFrom(renRenderer *ren, double position[3], double phi,
 void renUpdateViewing(renRenderer *ren) {
     mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
 }
+
+#define renORTHOGRAPHIC 0
+#define renPERSPECTIVE 1
+#define renPROJL 0
+#define renPROJR 1
+#define renPROJB 2
+#define renPROJT 3
+#define renPROJF 4
+#define renPROJN 5
+
+/* Sets the projection type, to either renORTHOGRAPHIC or renPERSPECTIVE. */
+void renSetProjectionType(renRenderer *ren, int projType) {
+    ren->projectionType = projType;
+}
+
+/* Sets all six projection parameters. */
+void renSetProjection(renRenderer *ren, double proj[6]) {
+    vecCopy(6, proj, ren->projection);
+}
+
+/* Sets one of the six projection parameters. */
+void renSetOneProjection(renRenderer *ren, int i, double value) {
+    ren->projection[i] = value;
+}
+
+/* Sets the projection type and the six projection parameters, based on the 
+width and height and three other parameters. The camera looks down the center 
+of the viewing volume. For perspective projection, fovy is the full (not half) 
+vertical angle of the field of vision, in radians. focal > 0 is the distance 
+from the camera to the 'focal' plane (where 'focus' is used in the sense of 
+attention, not optics). ratio expresses the far and near clipping planes 
+relative to focal: far = -focal * ratio and near = -focal / ratio. Reasonable 
+values are fovy = M_PI / 6.0, focal = 10.0, and ratio = 10.0, so that 
+far = -100.0 and near = -1.0. For orthographic projection, the projection 
+parameters are set to produce the orthographic projection that, at the focal 
+plane, is most similar to the perspective projection just described. */
+void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal, 
+    double ratio) {
+    ren->projectionType = projType;
+    ren->projection[renPROJF] = -focal * ratio;
+    ren->projection[renPROJN] = -focal / ratio;
+    if (projType == renPERSPECTIVE)
+        ren->projection[renPROJT] = -ren->projection[renPROJN] 
+          * tan(fovy * 0.5);
+    else
+        ren->projection[renPROJT] = focal * tan(fovy * 0.5);
+    ren->projection[renPROJB] = -ren->projection[renPROJT];
+    ren->projection[renPROJR] = ren->projection[renPROJT] * 
+      (double)(ren->depth->width) / (double)(ren->depth->height);
+    ren->projection[renPROJL] = -ren->projection[renPROJR];
+}
+

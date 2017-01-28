@@ -13,10 +13,10 @@
 #include "000pixel.h"
 
 #include "100vector.c"
-#include "100matrix.c"
+#include "130matrix.c"
 #include "110depth.c"
 #include "040texture.c"
-#include "120renderer.c"
+#include "130renderer.c"
 
 #define GLFW_KEY_ENTER 257
 #define GLFW_KEY_RIGHT 262
