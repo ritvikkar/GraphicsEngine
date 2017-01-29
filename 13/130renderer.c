@@ -111,7 +111,25 @@ void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal,
 
 /* Updates the renderer's viewing transformation, based on the camera. */
 void renUpdateViewing(renRenderer *ren) {
-    
     mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
-}
+    
+    double view[4][4];
+    mat44Viewport(ren->depth->width, ren->depth->height, ren->viewport);
+    
+/*    double proj[4][4];
+    if(ren->projectionType == renORTHOGRAPHIC){
+        mat44Orthographic(ren->projection[renPROJL], ren->projection[renPROJR], 
+                          ren->projection[renPROJB], ren->projection[renPROJT], 
+                          ren->projection[renPROJF], ren->projection[renPROJN], proj[4][4]);  
+    }
+
+    else if(ren->projectionType == renPERSPECTIVE){
+        mat44Perspective(ren->projection[renPROJL], ren->projection[renPROJR], 
+                          ren->projection[renPROJB], ren->projection[renPROJT], 
+                          ren->projection[renPROJF], ren->projection[renPROJN], proj[4][4]);  
+
+    }
+
+    mat444Multiply(view,proj,ren->viewport);
+*/}
 

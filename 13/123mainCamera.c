@@ -1,5 +1,6 @@
 /*
- * 122mainCamera.c
+ * Landscape trial
+ * 123mainCamera.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -85,16 +86,6 @@ double unif2[38] = {0.0,0.0,0.0,
                     0.0,0.0,0.0,0.0,
                     0.0,0.0,0.0,0.0};
 
-/* Sets rgb, based on the other parameters, which are unaltered. attr is an 
-interpolated attribute vector. */
-void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[], double rgbz[]) {
-    texSample(tex[0], vary[renVARYS], vary[renVARYT]);
-    rgbz[0] = tex[0]->sample[renTEXR];
-    rgbz[1] = tex[0]->sample[renTEXG];
-    rgbz[2] = tex[0]->sample[renTEXB];
-    //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
-    rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
-}
 
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], double vary[]) {
@@ -105,12 +96,6 @@ void transformVertex(renRenderer *ren, double unif[], double attr[], double vary
 
     double MtimesRXYZ[4];
     mat441Multiply((double(*)[4])(&unif[renUNIFVIEWING]),RtimesXYZ,MtimesRXYZ);
-
-    /*double CtimesM[4];
-    mat441Multiply(ren->viewing,MtimesRXYZ,CtimesM);
-
-    double VPtimesC[4];
-    mat441Multiply(ren->viewport,CtimesM,VPtimesC);*/
 
     vary[renVARYX] = MtimesRXYZ[0];
     vary[renVARYY] = MtimesRXYZ[1];
@@ -147,6 +132,18 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     }
 }
 
+/* Sets rgb, based on the other parameters, which are unaltered. attr is an 
+interpolated attribute vector. */
+void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[], double rgbz[]) {
+    texSample(tex[0], vary[renVARYS], vary[renVARYT]);
+    rgbz[0] = tex[0]->sample[renTEXR];
+    rgbz[1] = tex[0]->sample[renTEXG];
+    rgbz[2] = tex[0]->sample[renTEXB];
+    //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+    rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+}
+
+
 #include "110triangle.c"
 #include "100mesh.c"
 #include "090scene.c"
@@ -162,15 +159,6 @@ meshMesh mesh2;
 renRenderer ren;
 texTexture *tex[3];
 depthBuffer dep;
-
-void draw(void){
-    renUpdateViewing(&ren);
-    depthClearZs(&dep,-2000);
-    pixClearRGB(0.0,0.0,0.0);      
-    
-    //sceneRender that will call meshRender
-    sceneRender(&scene0,&ren,NULL);
-}
 
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDown, int superCommandIsDown) {
     if (key == GLFW_KEY_ENTER) {
@@ -222,11 +210,20 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     key, shiftIsDown, controlIsDown, altOptionIsDown, superCommandIsDown);
 }
 
+void draw(void){
+    renUpdateViewing(&ren);
+    depthClearZs(&dep,-2000);
+    pixClearRGB(0.0,0.0,0.0);      
+    
+    //sceneRender that will call meshRender
+    sceneRender(&scene0,&ren,NULL);
+}
+
 void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.02;
+    //scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.02;
     renLookAt(&ren, target, 0.0, camera[0], camera[1]);
 
     draw();
@@ -244,9 +241,9 @@ int main(void) {
 
         texTexture texture0, texture1, texture2;
         texInitializeFile(&texture0, "pic2.jpg");
-        texInitializeFile(&texture1, "pic1.jpg");
+        //texInitializeFile(&texture1, "pic1.jpg");
         tex[0] = &texture0;
-        tex[1] = &texture1;
+        //tex[1] = &texture1;
         texSetLeftRight(&texture0, texREPEAT);
         texSetTopBottom(&texture0, texREPEAT);
 
@@ -258,17 +255,22 @@ int main(void) {
         ren.updateUniform = updateUniform;
         ren.depth = &dep;
         //initilize all the renderer values 
-
-        meshInitializeSphere(&mesh0, 100, 20, 20);
-        meshInitializeSphere(&mesh1, 50, 40, 40);
+        
+        double zs[3][4] = {
+            {10.0, 9.0, 7.0, 6.0},
+            {6.0, 5.0, 3.0, 1.0},
+            {4.0, 3.0, -1.0, -2.0}};
+        int error = meshInitializeLandscape(&mesh0, 3, 4, 20.0, (double *)zs);
+        //meshInitializeSphere(&mesh0, 100, 20, 20);
+        //meshInitializeSphere(&mesh1, 50, 40, 40);
 
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
-        sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);        
+        //sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);        
 
-        sceneSetTexture(&scene1,&ren,0,&texture1);
+        //sceneSetTexture(&scene1,&ren,0,&texture1);
 
-        sceneSetUniform(&scene1,&ren,unif2);
-        sceneAddChild(&scene0,&scene1);
+        sceneSetUniform(&scene0,&ren,unif2);
+        //sceneAddChild(&scene0,&scene1);
 
         renLookAt(&ren, target, 0.0, camera[0], camera[1]);
 
@@ -277,7 +279,7 @@ int main(void) {
 
         texDestroy(tex[0]);
         meshDestroy(&mesh0);
-        meshDestroy(&mesh1);
+        //meshDestroy(&mesh1);
         depthDestroy(&dep);
         sceneDestroyRecursively(&scene0);
         return 0;

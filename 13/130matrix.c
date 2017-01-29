@@ -293,4 +293,24 @@ far plane, the frustum is the rectangle (far / near) * R. Maps the viewing
 volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Perspective(double left, double right, double bottom, double top, 
         double far, double near, double proj[4][4])
-{}
+{
+    proj[0][0] = (-2*near)/(right-left);
+    proj[0][1] = 0;
+    proj[0][2] = (right+left)/(right-left);
+    proj[0][3] = 0;
+
+    proj[1][0] = 0;
+    proj[1][1] = (-2*near)/(top-bottom);
+    proj[1][2] = (top+bottom)/(top-bottom);
+    proj[1][3] = 0;
+
+    proj[2][0] = 0;
+    proj[2][1] = 0;
+    proj[2][2] = (-near-far)/(near-far);
+    proj[2][3] = (2*near*far)/(near-far);
+
+    proj[3][0] = 0;
+    proj[3][1] = 0;
+    proj[3][2] = -1;
+    proj[3][3] = 0;
+}
