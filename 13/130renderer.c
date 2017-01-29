@@ -4,6 +4,15 @@
  * CS 331: Computer Graphics
 */
 
+#define renORTHOGRAPHIC 0
+#define renPERSPECTIVE 1
+#define renPROJL 0
+#define renPROJR 1
+#define renPROJB 2
+#define renPROJT 3
+#define renPROJF 4
+#define renPROJN 5
+
 typedef struct renRenderer renRenderer;
 
 struct renRenderer {
@@ -58,20 +67,6 @@ void renLookFrom(renRenderer *ren, double position[3], double phi,
     vecCopy(3, position, ren->cameraTranslation);
 }
 
-/* Updates the renderer's viewing transformation, based on the camera. */
-void renUpdateViewing(renRenderer *ren) {
-    mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
-}
-
-#define renORTHOGRAPHIC 0
-#define renPERSPECTIVE 1
-#define renPROJL 0
-#define renPROJR 1
-#define renPROJB 2
-#define renPROJT 3
-#define renPROJF 4
-#define renPROJN 5
-
 /* Sets the projection type, to either renORTHOGRAPHIC or renPERSPECTIVE. */
 void renSetProjectionType(renRenderer *ren, int projType) {
     ren->projectionType = projType;
@@ -112,5 +107,11 @@ void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal,
     ren->projection[renPROJR] = ren->projection[renPROJT] * 
       (double)(ren->depth->width) / (double)(ren->depth->height);
     ren->projection[renPROJL] = -ren->projection[renPROJR];
+}
+
+/* Updates the renderer's viewing transformation, based on the camera. */
+void renUpdateViewing(renRenderer *ren) {
+    
+    mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
 }
 
