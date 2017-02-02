@@ -103,6 +103,7 @@ void mat33Transpose(double m[3][3], double m_T[3][3]){
 rotation matrix for the rotation about that axis through that angle. Based on 
 Rodrigues' rotation formula R = I + (sin theta) U + (1 - cos theta) U^2. */
 void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3]) {
+    //R = I + ((sin theta) * U) + ((1 - cos theta)*U^2)
     double U[3][3];
     double UU[3][3];//U^2
 
@@ -136,6 +137,8 @@ void mat33AngleAxisRotation(double theta, double axis[3], double rot[3][3]) {
 Given two length-1 3D vectors a, b that are perpendicular to each other. Builds 
 the rotation matrix that rotates u to a and v to b. */
 void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3], double rot[3][3]){
+    //Form R [u v uxv] -> Then S [a b axb] -> Transpose R for R_T -> S x R_T = rot[3][3]
+
     double R[3][3];
     double S[3][3];
 

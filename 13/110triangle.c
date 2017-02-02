@@ -7,6 +7,9 @@
 /*interpolate the coordinates here*/
 void interpolate(double a[], double b[], double c[],
         double x[], texTexture *tex[], renRenderer *ren, double unif[]){
+    //INTERPOLATION BEGINS
+    // x = a + p(b - a) +q(c - a)
+    // [b-a|c-a]^-1 [x-a] = [p,q]
 
     double ba[2], ca[2], xa[2];
     vecSubtract(2,c,a,ca); //c-a
@@ -35,14 +38,15 @@ void interpolate(double a[], double b[], double c[],
     vecAdd(ren->varyDim,scaleP,scaleQ,addPQ);
     double khi[ren->varyDim];
     vecAdd(ren->varyDim,addPQ,a,khi);
-
+    //INTERPOLATION ENDS
     double rgbz[4];
-    //if rgbz[3]>depthbuffer->z the depthSetZ(buf,x[0],x[1],rgbz[3]) and do pixSetRGB
-    ren->colorPixel(ren, unif, tex, khi, rgbz);
+
+    ren->colorPixel(ren, unif, tex, khi, rgbz); //run color pixel first
     if(khi[renVARYZ] > depthGetZ(ren->depth, x[0], x[1])){
         pixSetRGB(x[0],x[1], rgbz[0], rgbz[1], rgbz[2]);
         depthSetZ(ren->depth,x[0],x[1],khi[renVARYZ]);
-    }
+    }/* depth is compared to depth buffer and if the depth 
+       is higher then depth buffer is updated */
 }
 
 void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
@@ -129,6 +133,7 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
 void triRender(renRenderer *ren, double unif[], texTexture *tex[], double a[], 
         double b[], double c[])
 {
+    //chack the orientation of the triangle
     if (((a[0]<b[0]) && (a[0]<c[0])) || (c[0]==a[0] && a[1]<c[1])){
         triangleALeft(ren,unif,tex,a,b,c); // a is left most
     }

@@ -78,15 +78,15 @@ node's uniform vector. */
 void sceneRender(sceneNode *node, renRenderer *ren, double *unifParent) {
 	ren->updateUniform(ren,node->unif,unifParent);
 	meshRender(node->mesh,ren,node->unif,node->tex);
+	//projects all the triangles in the first scence
 
 	if (node->firstChild != NULL){
 		sceneRender(node->firstChild,ren,node->unif);
-	}
+	}// if only one scene stop
 
 	while(node->nextSibling != NULL){
 		sceneRender(node->nextSibling,ren,node->unif);
-	}    
-
+	}//else go throug all the scenes
 }
 
 /* Deallocates the resources backing this scene node. Does not destroy the 

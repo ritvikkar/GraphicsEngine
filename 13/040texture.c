@@ -274,7 +274,7 @@ void texSample(texTexture *tex, double s, double t) {
         }
 
         vecCopy(tex->texelDim, total, tex->sample);
-	} else{
+	}else{
 		texGetTexel(tex, (int)round(u), (int)round(v), tex->sample);
     }
 }

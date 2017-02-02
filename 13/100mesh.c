@@ -78,6 +78,7 @@ void meshDestroy(meshMesh *mesh) {
 /*** Rendering ***/
 double meshTransformedVertices[renVERTNUMBOUND * renVARYDIMBOUND];
 
+/* Returns a pointer to the transformed vertth vertex */
 double *meshGetVaryPointer(meshMesh *mesh, renRenderer *ren,
 		int vert) {
 	if (0 <= vert && vert < mesh->vertNum)
@@ -100,16 +101,19 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 			double *vertex = meshGetVertexPointer(mesh, i);
 			double *vary = meshGetVaryPointer(mesh, ren, i);
 			ren->transformVertex(ren, unif, vertex, vary);
-		}
+		}//change all unifs to varys
 
 		for (i = 0; i < mesh->triNum; i++)
 		{
+			//receive a pointer to the triangle
 			int *triangle = meshGetTrianglePointer(mesh, i);
+
+			//place vertices in individual slots
 			double *a = meshGetVaryPointer(mesh, ren, triangle[0]);
 			double *b = meshGetVaryPointer(mesh, ren, triangle[1]);
 			double *c = meshGetVaryPointer(mesh, ren, triangle[2]);
 			triRender(ren, unif, tex, a,b,c);
-		}
+		}//call tri render on all the transformed vertices
 	}
 }
 

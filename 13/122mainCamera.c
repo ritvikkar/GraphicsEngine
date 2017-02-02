@@ -86,7 +86,8 @@ double unif2[38] = {0.0,0.0,0.0,
                     0.0,0.0,0.0,0.0};
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
-interpolated attribute vector. */
+interpolated attribute vector. can also add effects to the rgbz depending on what
+you pass it. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[], double rgbz[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
     rgbz[0] = tex[0]->sample[renTEXR];
@@ -94,6 +95,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     rgbz[2] = tex[0]->sample[renTEXB];
     //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
     rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -124,11 +126,11 @@ rotation-translation M described by the other uniforms. If unifParent is not
 NULL, but instead contains a rotation-translation P, then sets the uniform 
 matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
-    double u[3];
-    double rot[3][3];
+    double u[3]; // 3D vector from PHI and THETA
+    double rot[3][3]; //Rotational Matrix from RHO
 
-    vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u);
-    mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);    
+    vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u); //set a axis
+    mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);  //rotate around that  
     
     mat44Copy(ren->viewing, (double(*)[4])(&unif[renUNIFVIEWING]));
     double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
@@ -151,7 +153,7 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 #include "100mesh.c"
 #include "090scene.c"
 
-sceneNode scene0;
+sceneNode scene0; //actual scene type
 sceneNode scene1;
 sceneNode scene2;
 
@@ -160,12 +162,12 @@ meshMesh mesh1;
 meshMesh mesh2;
 
 renRenderer ren;
-texTexture *tex[3];
+texTexture *tex[3]; //pointer to textures types
 depthBuffer dep;
 
 void draw(void){
     renUpdateViewing(&ren);
-    depthClearZs(&dep,-2000);
+    depthClearZs(&dep,-10000);
     pixClearRGB(0.0,0.0,0.0);      
     
     //sceneRender that will call meshRender
@@ -242,10 +244,10 @@ int main(void) {
         pixSetTimeStepHandler(handleTimeStep);
         pixSetKeyUpHandler(handleKeyUp);
 
-        texTexture texture0, texture1, texture2;
+        texTexture texture0, texture1, texture2; //actualy texture type
         texInitializeFile(&texture0, "pic2.jpg");
         texInitializeFile(&texture1, "pic1.jpg");
-        tex[0] = &texture0;
+        tex[0] = &texture0; //placing the textures in a array of textures
         tex[1] = &texture1;
         texSetLeftRight(&texture0, texREPEAT);
         texSetTopBottom(&texture0, texREPEAT);
