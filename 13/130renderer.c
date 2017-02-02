@@ -111,6 +111,8 @@ void renSetFrustum(renRenderer *ren, int projType, double fovy, double focal,
 
 /* Updates the renderer's viewing transformation, based on the camera. */
 void renUpdateViewing(renRenderer *ren) {
+    //mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, ren->viewing);
+
     double cInv[4][4];
     double P[4][4];
     mat44InverseIsometry(ren->cameraRotation, ren->cameraTranslation, cInv);

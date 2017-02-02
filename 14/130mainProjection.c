@@ -59,20 +59,20 @@
 #define renTEXG 1
 #define renTEXB 2
 
-double camera[2] = {M_PI/2,-1*M_PI/2};
+double camera[2] = {M_PI/2,0.0};
 
-double target[3] = {-100.0, -100.0, -100.0};
+double target[3] = {0.0, 0.0, 0.0};
 
-double unif[38] =  {0.0,0,0,
-                    200.0,300.0,0.0,     
-                    1.0,0.0,0.0,0.0,    //isometry
-                    0.0,1.0,0.0,0.0,
-                    0.0,0.0,1.0,0.0,
-                    0.0,0.0,0.0,1.0,    
-                    0.0,0.0,0.0,0.0,    //viewing
-                    0.0,0.0,0.0,0.0,
-                    0.0,0.0,0.0,0.0,
-                    0.0,0.0,0.0,0.0};
+double unif[38] = {0.0,0.0,0.0,
+                   -1.0,0.0,-1.0,     
+                   1.0,0.0,0.0,0.0,
+                   0.0,1.0,0.0,0.0,
+                   0.0,0.0,1.0,0.0,
+                   0.0,0.0,0.0,1.0,    
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0};
 
 double unif2[38] = {0.0,0.0,0.0,
                     0.0,0.0,60.0, 
@@ -93,7 +93,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     rgbz[0] = tex[0]->sample[renTEXR];
     rgbz[1] = tex[0]->sample[renTEXG];
     rgbz[2] = tex[0]->sample[renTEXB];
-    //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
     rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
 
 }
@@ -132,11 +131,12 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double u[3]; // 3D vector from PHI and THETA
     double rot[3][3]; //Rotational Matrix from RHO
+    
+    mat44Copy(ren->viewing, (double(*)[4])(&unif[renUNIFVIEWING]));
 
     vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u); //set a axis
     mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);  //rotate around that  
     
-    mat44Copy(ren->viewing, (double(*)[4])(&unif[renUNIFVIEWING]));
     double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
 
     if (unifParent == NULL){
@@ -154,7 +154,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 }
 
 #include "110triangle.c"
-#include "100mesh.c"
+//#include "140clipping.c"
+#include "140mesh.c"
 #include "090scene.c"
 
 sceneNode scene0; //actual scene type
@@ -232,8 +233,7 @@ void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.02;
-    renLookAt(&ren, target, 0.0, camera[0], camera[1]);
+    renLookAt(&ren, target, 10.0, camera[0], camera[1]);
 
     draw();
 }
@@ -250,9 +250,7 @@ int main(void) {
 
         texTexture texture0, texture1, texture2; //actualy texture type
         texInitializeFile(&texture0, "pic2.jpg");
-        texInitializeFile(&texture1, "pic1.jpg");
         tex[0] = &texture0; //placing the textures in a array of textures
-        tex[1] = &texture1;
         texSetLeftRight(&texture0, texREPEAT);
         texSetTopBottom(&texture0, texREPEAT);
 
@@ -265,18 +263,10 @@ int main(void) {
         ren.depth = &dep;
         //initilize all the renderer values 
 
-        meshInitializeSphere(&mesh0, 100, 20, 20);
-        meshInitializeSphere(&mesh1, 50, 40, 40);
-
+        meshInitializeBox(&mesh0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
-        sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);        
 
-        sceneSetTexture(&scene1,&ren,0,&texture1);
-
-        sceneSetUniform(&scene1,&ren,unif2);
-        sceneAddChild(&scene0,&scene1);
-
-        renLookAt(&ren, target, 0.0, camera[0], camera[1]);
+        renLookAt(&ren, target, 10.0, camera[0], camera[1]);
         renSetFrustum(&ren, renPERSPECTIVE, M_PI/6.0, 10.0, 10.0);
 
         draw();
@@ -284,9 +274,9 @@ int main(void) {
 
         texDestroy(tex[0]);
         meshDestroy(&mesh0);
-        meshDestroy(&mesh1);
         depthDestroy(&dep);
         sceneDestroyRecursively(&scene0);
+
         return 0;
     }
 }

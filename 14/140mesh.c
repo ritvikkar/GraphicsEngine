@@ -112,7 +112,7 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 			double *a = meshGetVaryPointer(mesh, ren, triangle[0]);
 			double *b = meshGetVaryPointer(mesh, ren, triangle[1]);
 			double *c = meshGetVaryPointer(mesh, ren, triangle[2]);
-			clipRender(ren, unif, tex, a,b,c);
+			triRender(ren, unif, tex, a,b,c);
 		}//call meshrender on all the transformed vertices
 	}
 }
