@@ -4,9 +4,6 @@
  * CS 331: Computer Graphics
 */
 
-
-
-
 /* Feel free to read from this struct's members, but don't write to them except 
 through the accessor functions. */
 typedef struct sceneNode sceneNode;

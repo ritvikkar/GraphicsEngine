@@ -1,5 +1,5 @@
 /*
- * 140mesh.c
+ * 100mesh.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -107,14 +107,17 @@ void meshRender(meshMesh *mesh, renRenderer *ren, double unif[],
 		{
 			//receive a pointer to the triangle
 			int *triangle = meshGetTrianglePointer(mesh, i);
+
 			//place vertices in individual slots
 			double *a = meshGetVaryPointer(mesh, ren, triangle[0]);
 			double *b = meshGetVaryPointer(mesh, ren, triangle[1]);
 			double *c = meshGetVaryPointer(mesh, ren, triangle[2]);
 			triRender(ren, unif, tex, a,b,c);
-		}//call meshrender on all the transformed vertices
+		}//call tri render on all the transformed vertices
 	}
 }
+
+
 
 /*** Convenience initializers: 2D ***/
 

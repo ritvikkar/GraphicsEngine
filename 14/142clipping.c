@@ -1,18 +1,14 @@
+
+
 /*
- * 140clipping.c
+ * 142clipping.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
 
-/*clipViewPort performs the viewport transformation and the homogeneous division
- *one a given vertex
+/*since my viewport isn't working as a helper function
+ *all viewports are done on the spot
  */
-void clipViewPort(renRenderer *ren, double vertex[]) {
-    double scale[renVARYDIMBOUND];
-
-    vecScale(ren->attrDim, 1.0/vert[renVARYW], vertex, scale);
-    mat441Multiply(ren->viewport, scale, vertex);
-}
 
 /*clipScale takes in two points a,b and finds a new point that*/
 void clipScale(renRenderer *ren, double unif[], texTexture *tex[],
@@ -32,15 +28,33 @@ void clipOne(renRenderer *ren, double unif[], texTexture *tex[],
     printf("clipOne\n");
 
     double point1[renVARYDIMBOUND],point2[renVARYDIMBOUND];    
-    clipScale(ren,unif,tex,a,b,point1);
+    clipScale(ren,unif,tex,a,c,point1);
     clipScale(ren,unif,tex,a,b,point2);        
 
-    clipViewPort(ren,point1);
-    clipViewPort(ren,point2);    
-    clipViewPort(ren,b);
-    clipViewPort(ren,c);
-    triRender(ren, unif, tex, point1, b, c);
-    triRender(ren, unif, tex, point2, b, point1);    
+    double scale[renVARYDIMBOUND];
+    double point1_ViewPort[renVARYDIMBOUND], point2_ViewPort[renVARYDIMBOUND],
+        b_ViewPort[renVARYDIMBOUND], c_ViewPort[renVARYDIMBOUND];
+
+    vecScale(ren->varyDim, 1.0/b[renVARYW], b, scale);
+    mat441Multiply(ren->viewport, scale, b_ViewPort);
+    vecScale(ren->varyDim, 1.0/c[renVARYW], c, scale);
+    mat441Multiply(ren->viewport, scale, c_ViewPort);
+    vecScale(ren->varyDim, 1.0/point1[renVARYW], point1, scale);
+    mat441Multiply(ren->viewport, scale, point1_ViewPort);
+    vecScale(ren->varyDim, 1.0/point2[renVARYW], point2, scale);
+    mat441Multiply(ren->viewport, scale, point2_ViewPort);
+
+    point1_ViewPort[renVARYS] = point1[renVARYS];
+    point1_ViewPort[renVARYT] = point1[renVARYT];
+    point2_ViewPort[renVARYS] = point2[renVARYS];
+    point2_ViewPort[renVARYT] = point2[renVARYT];    
+    b_ViewPort[renVARYS] = b[renVARYS];
+    b_ViewPort[renVARYT] = b[renVARYT];
+    c_ViewPort[renVARYS] = c[renVARYS];
+    c_ViewPort[renVARYT] = c[renVARYT];     
+
+    triRender(ren, unif, tex, point1_ViewPort, b_ViewPort, c_ViewPort);
+    triRender(ren, unif, tex, point2_ViewPort, b_ViewPort, point1_ViewPort);    
 }
 
 /*clipTwo, i.e. two sides are clipped, will emit one triangle*/
@@ -49,12 +63,27 @@ void clipTwo(renRenderer *ren, double unif[], texTexture *tex[],
     printf("clipTwo\n");
     
     double point1[renVARYDIMBOUND],point2[renVARYDIMBOUND];    
-    clipScale(ren,unif,tex,a,b,point1);
+    clipScale(ren,unif,tex,c,b,point1);
     clipScale(ren,unif,tex,a,b,point2);        
 
-    clipViewPort(ren,point1);
-    clipViewPort(ren,point2);    
-    clipViewPort(ren,b);
+    double scale[renVARYDIMBOUND];
+    double point1_ViewPort[renVARYDIMBOUND], point2_ViewPort[renVARYDIMBOUND],
+        b_ViewPort[renVARYDIMBOUND];
+
+    vecScale(ren->varyDim, 1.0/b[renVARYW], b, scale);
+    mat441Multiply(ren->viewport, scale, b_ViewPort);
+    vecScale(ren->varyDim, 1.0/point1[renVARYW], point1, scale);
+    mat441Multiply(ren->viewport, scale, point1_ViewPort);
+    vecScale(ren->varyDim, 1.0/point2[renVARYW], point2, scale);
+    mat441Multiply(ren->viewport, scale, point2_ViewPort);
+
+    point1_ViewPort[renVARYS] = point1[renVARYS];
+    point1_ViewPort[renVARYT] = point1[renVARYT];
+    point2_ViewPort[renVARYS] = point2[renVARYS];
+    point2_ViewPort[renVARYT] = point2[renVARYT];    
+    b_ViewPort[renVARYS] = b[renVARYS];
+    b_ViewPort[renVARYT] = b[renVARYT];
+
     triRender(ren, unif, tex, point2, b, point1);
 }
 
@@ -79,8 +108,6 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     int clip[3];//array to keep flags for clipping
     clip[0]=clip[1]=clip[2]=0;
 
-    printf("%d %d %d\n",clip[0],clip[1],clip[2]);
-
 	//a is clipped
     if (a[renVARYW] <= 0 || a[renVARYZ] > a[renVARYW])
     	clip[0] = 1;
@@ -93,21 +120,32 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     if (c[renVARYW] <= 0 || c[renVARYZ] > c[renVARYW])
     	clip[2] = 1;
 
-    
-    printf("%d %d %d\n",clip[0],clip[1],clip[2]);
 
     //all vertices are clipped,render nothing
     if (clip[0] == 1 && clip[1] == 1 && clip[2] == 1)
-    	return	;
+    	return ;
     
     //none are clipped, render triangle
     else if (clip[0] == 0 && clip[1] == 0 && clip[2] == 0)
     {
     	//put the vertices through the viewport transformation
-	    clipViewPort(ren,a);
-	    clipViewPort(ren,b);
-	    clipViewPort(ren,c);
-	    triRender(ren, unif, tex, a, b, c);
+        double scale[renVARYDIMBOUND];
+        double a_viewPort[renVARYDIMBOUND], b_ViewPort[renVARYDIMBOUND], c_ViewPort[renVARYDIMBOUND];
+
+        vecScale(ren->varyDim, 1.0/a[renVARYW], a, scale);
+        mat441Multiply(ren->viewport, scale, a_viewPort);
+        vecScale(ren->varyDim, 1.0/b[renVARYW], b, scale);
+        mat441Multiply(ren->viewport, scale, b_ViewPort);
+        vecScale(ren->varyDim, 1.0/c[renVARYW], c, scale);
+        mat441Multiply(ren->viewport, scale, c_ViewPort);
+
+        a_viewPort[renVARYS] = a[renVARYS];
+        a_viewPort[renVARYT] = a[renVARYT];
+        b_ViewPort[renVARYS] = b[renVARYS];
+        b_ViewPort[renVARYT] = b[renVARYT];
+        c_ViewPort[renVARYS] = c[renVARYS];
+        c_ViewPort[renVARYT] = c[renVARYT];	    
+        triRender(ren, unif, tex, a_viewPort, b_ViewPort, c_ViewPort);
     }
 
     //six remaining cases of clipping

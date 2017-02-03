@@ -1,5 +1,5 @@
 /*
- * 122mainCamera.c
+ * 141mainClipping.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -11,7 +11,6 @@
 
 #include <GLFW/glfw3.h>
 #include "000pixel.h"
-
 #include "100vector.c"
 #include "130matrix.c"
 #include "110depth.c"
@@ -23,6 +22,9 @@
 #define GLFW_KEY_LEFT 263
 #define GLFW_KEY_DOWN 264
 #define GLFW_KEY_UP 265
+
+#define GLFW_KEY_ZOOM_IN 334
+#define GLFW_KEY_ZOOM_OUT 333
 
 #define renVARYDIMBOUND 16
 #define renVERTNUMBOUND 1000
@@ -39,11 +41,12 @@
 #define renVARYX 0
 #define renVARYY 1
 #define renVARYZ 2
-#define renVARYS 3
-#define renVARYT 4
-#define renVARYR 5
-#define renVARYG 6
-#define renVARYB 7
+#define renVARYW 3
+#define renVARYS 4
+#define renVARYT 5
+#define renVARYR 6
+#define renVARYG 7
+#define renVARYB 8
 
 #define renUNIFRHO 0
 #define renUNIFPHI 1
@@ -59,23 +62,19 @@
 #define renTEXG 1
 #define renTEXB 2
 
-double camera[2] = {M_PI/2,-1*M_PI/2};
-
-double target[3] = {-100.0, -100.0, -100.0};
-
-double unif[38] =  {0.0,0,0,
-                    200.0,300.0,0.0,     
-                    1.0,0.0,0.0,0.0,    //isometry
-                    0.0,1.0,0.0,0.0,
-                    0.0,0.0,1.0,0.0,
-                    0.0,0.0,0.0,1.0,    
-                    0.0,0.0,0.0,0.0,    //viewing
-                    0.0,0.0,0.0,0.0,
-                    0.0,0.0,0.0,0.0,
-                    0.0,0.0,0.0,0.0};
+double unif[38] = {0.0,0.0,0.0,
+                   1.0,0.0,-1.05,     
+                   1.0,0.0,0.0,0.0,
+                   0.0,1.0,0.0,0.0,
+                   0.0,0.0,1.0,0.0,
+                   0.0,0.0,0.0,1.0,    
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0,
+                   0.0,0.0,0.0,0.0};
 
 double unif2[38] = {0.0,0.0,0.0,
-                    0.0,0.0,60.0, 
+                    0.0,0.0,0.0, 
                     1.0,0.0,0.0,0.0,
                     0.0,1.0,0.0,0.0,
                     0.0,0.0,1.0,0.0,
@@ -93,7 +92,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     rgbz[0] = tex[0]->sample[renTEXR];
     rgbz[1] = tex[0]->sample[renTEXG];
     rgbz[2] = tex[0]->sample[renTEXB];
-    //rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
     rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
 
 }
@@ -108,15 +106,10 @@ void transformVertex(renRenderer *ren, double unif[], double attr[], double vary
     double MtimesRXYZ[4];
     mat441Multiply((double(*)[4])(&unif[renUNIFVIEWING]),RtimesXYZ,MtimesRXYZ);
 
-    /*double CtimesM[4];
-    mat441Multiply(ren->viewing,MtimesRXYZ,CtimesM);
-
-    double VPtimesC[4];
-    mat441Multiply(ren->viewport,CtimesM,VPtimesC);*/
-
     vary[renVARYX] = MtimesRXYZ[0];
     vary[renVARYY] = MtimesRXYZ[1];
     vary[renVARYZ] = MtimesRXYZ[2];
+    vary[renVARYW] = MtimesRXYZ[3];    
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
 }
@@ -128,11 +121,12 @@ matrix to the matrix product P * M. */
 void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     double u[3]; // 3D vector from PHI and THETA
     double rot[3][3]; //Rotational Matrix from RHO
+    
+    mat44Copy(ren->viewing, (double(*)[4])(&unif[renUNIFVIEWING]));
 
     vec3Spherical(1.0,unif[renUNIFPHI],unif[renUNIFTHETA],u); //set a axis
     mat33AngleAxisRotation(unif[renUNIFRHO],u,rot);  //rotate around that  
     
-    mat44Copy(ren->viewing, (double(*)[4])(&unif[renUNIFVIEWING]));
     double trans[3] = {unif[renUNIFTRANSX], unif[renUNIFTRANSY], unif[renUNIFTRANSZ]};
 
     if (unifParent == NULL){
@@ -150,7 +144,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 }
 
 #include "110triangle.c"
-#include "100mesh.c"
+#include "142clipping.c"
+#include "141mesh.c"
 #include "090scene.c"
 
 sceneNode scene0; //actual scene type
@@ -174,12 +169,15 @@ void draw(void){
     sceneRender(&scene0,&ren,NULL);
 }
 
+double camera[2] = {M_PI/2,0.0};
+double zoom = 10;
+double viewing[3] = {0.0, 1.0, 0.0};
+
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDown, int superCommandIsDown) {
     if (key == GLFW_KEY_ENTER) {
         if (tex[0]->filtering == texNEAREST) {
             texSetFiltering(tex[0], texQUADRATIC);
-        }
-        else {
+        }else {
             texSetFiltering(tex[0], texNEAREST);
         }
     } 
@@ -187,8 +185,7 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     else if (key == GLFW_KEY_UP) {
         if (camera[0] + 0.05 > M_PI) {
             camera[0] = 0.01;
-        }
-        else {
+        }else{
             camera[0] = camera[0] + 0.05;
         }
     } 
@@ -196,8 +193,7 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     else if (key == GLFW_KEY_DOWN) {
         if (camera[0] - 0.05 < 0.0) {
             camera[0] = M_PI - 0.05;
-        }
-        else {
+        }else{
             camera[0] = camera[0] - 0.05;
         }
     } 
@@ -205,8 +201,7 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     else if (key == GLFW_KEY_LEFT) {
         if (camera[1] - 0.05 < (-1*M_PI)) {
             camera[1] = M_PI - 0.05;
-        }
-        else {
+        }else{
             camera[1] = camera[1] - 0.05;
         }
     } 
@@ -214,9 +209,21 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     else if (key == GLFW_KEY_RIGHT) {
         if (camera[1] + 0.05 > M_PI) {
             camera[1] = (-1*M_PI) + 0.05;
-        }
-        else {
+        }else {
             camera[1] = camera[1] + 0.05;
+        }
+    }
+
+    else if (key == GLFW_KEY_ZOOM_IN) {
+        zoom = zoom + 5.0;
+    } 
+
+    else if (key == GLFW_KEY_ZOOM_OUT) {
+        if (zoom - 5.0 < 5.0) {
+            return;
+        } 
+        else{
+        zoom = zoom - 5.0;
         }
     }
 
@@ -228,8 +235,7 @@ void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
 
-    scene0.unif[renUNIFRHO] = scene0.unif[renUNIFRHO] + 0.02;
-    renLookAt(&ren, target, 0.0, camera[0], camera[1]);
+    renLookAt(&ren, viewing, zoom, camera[0], camera[1]);
 
     draw();
 }
@@ -245,15 +251,13 @@ int main(void) {
         pixSetKeyUpHandler(handleKeyUp);
 
         texTexture texture0, texture1, texture2; //actualy texture type
-        texInitializeFile(&texture0, "pic2.jpg");
-        texInitializeFile(&texture1, "pic1.jpg");
+        texInitializeFile(&texture0, "pic.jpg");
         tex[0] = &texture0; //placing the textures in a array of textures
-        tex[1] = &texture1;
         texSetLeftRight(&texture0, texREPEAT);
         texSetTopBottom(&texture0, texREPEAT);
 
         depthInitialize(&dep,512,512);
-        ren.attrDim = 8; ren.varyDim = 5; 
+        ren.attrDim = 8; ren.varyDim = 6; 
         ren.unifDim = 38; ren.texNum = 1; 
         ren.colorPixel = colorPixel;
         ren.transformVertex = transformVertex;
@@ -261,27 +265,20 @@ int main(void) {
         ren.depth = &dep;
         //initilize all the renderer values 
 
-        meshInitializeSphere(&mesh0, 100, 20, 20);
-        meshInitializeSphere(&mesh1, 50, 40, 40);
-
+        meshInitializeSphere(&mesh0, 1, 20, 20);
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
-        sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);        
-
-        sceneSetTexture(&scene1,&ren,0,&texture1);
-
-        sceneSetUniform(&scene1,&ren,unif2);
-        sceneAddChild(&scene0,&scene1);
-
-        renLookAt(&ren, target, 0.0, camera[0], camera[1]);
+      
+        renLookAt(&ren, viewing, zoom, camera[0], camera[1]);
+        renSetFrustum(&ren, renPERSPECTIVE, M_PI/6.0, 10.0, 10.0);
 
         draw();
         pixRun();
 
         texDestroy(tex[0]);
         meshDestroy(&mesh0);
-        meshDestroy(&mesh1);
         depthDestroy(&dep);
         sceneDestroyRecursively(&scene0);
+
         return 0;
     }
 }
