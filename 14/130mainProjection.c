@@ -61,7 +61,7 @@
 
 double camera[2] = {M_PI/2,0.0};
 
-double target[3] = {0.0, 0.0, 0.0};
+double target[3] = {-1.0, 1.0, 0.0};
 
 double unif[38] = {0.0,0.0,0.0,
                    -1.0,0.0,-1.0,     
@@ -250,7 +250,9 @@ int main(void) {
 
         texTexture texture0, texture1, texture2; //actualy texture type
         texInitializeFile(&texture0, "pic2.jpg");
+        texInitializeFile(&texture1, "pic1.jpg");
         tex[0] = &texture0; //placing the textures in a array of textures
+        tex[1] = &texture1;
         texSetLeftRight(&texture0, texREPEAT);
         texSetTopBottom(&texture0, texREPEAT);
 
@@ -263,17 +265,25 @@ int main(void) {
         ren.depth = &dep;
         //initilize all the renderer values 
 
-        meshInitializeBox(&mesh0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+        meshInitializeSphere(&mesh0, 1, 20, 20);
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
+        sceneInitialize(&scene1,&ren,unif,tex,&mesh1,NULL,NULL);        
+      
+        sceneSetTexture(&scene1,&ren,0,&texture1);
 
-        renLookAt(&ren, target, 10.0, camera[0], camera[1]);
+        sceneSetUniform(&scene1,&ren,unif2);
+        sceneAddChild(&scene0,&scene1);
+
+        renLookAt(&ren, target, 5.0, camera[0], camera[1]);
         renSetFrustum(&ren, renPERSPECTIVE, M_PI/6.0, 10.0, 10.0);
 
         draw();
         pixRun();
 
         texDestroy(tex[0]);
+        texDestroy(tex[1]);
         meshDestroy(&mesh0);
+        meshDestroy(&mesh1);    
         depthDestroy(&dep);
         sceneDestroyRecursively(&scene0);
 
