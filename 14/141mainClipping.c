@@ -144,8 +144,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 }
 
 #include "110triangle.c"
-#include "142clipping.c"
-#include "141mesh.c"
+#include "140clipping.c"
+#include "140mesh.c"
 #include "090scene.c"
 
 sceneNode scene0; //actual scene type
@@ -214,16 +214,16 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
         }
     }
 
-    else if (key == GLFW_KEY_ZOOM_IN) {
-        zoom = zoom + 5.0;
+    else if (key == GLFW_KEY_ZOOM_OUT) {
+        zoom = zoom + 1.0;
     } 
 
-    else if (key == GLFW_KEY_ZOOM_OUT) {
+    else if (key == GLFW_KEY_ZOOM_IN) {
         if (zoom - 5.0 < 5.0) {
             return;
         } 
         else{
-        zoom = zoom - 5.0;
+            zoom = zoom - 1.0;
         }
     }
 

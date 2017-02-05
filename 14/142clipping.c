@@ -31,17 +31,17 @@ void clipOne(renRenderer *ren, double unif[], texTexture *tex[],
     clipScale(ren,unif,tex,a,c,point1);
     clipScale(ren,unif,tex,a,b,point2);        
 
-    double scale[renVARYDIMBOUND];
+    double scale[4];
     double point1_ViewPort[renVARYDIMBOUND], point2_ViewPort[renVARYDIMBOUND],
         b_ViewPort[renVARYDIMBOUND], c_ViewPort[renVARYDIMBOUND];
 
-    vecScale(ren->varyDim, 1.0/b[renVARYW], b, scale);
+    vecScale(4, 1.0/b[renVARYW], b, scale);
     mat441Multiply(ren->viewport, scale, b_ViewPort);
-    vecScale(ren->varyDim, 1.0/c[renVARYW], c, scale);
+    vecScale(4, 1.0/c[renVARYW], c, scale);
     mat441Multiply(ren->viewport, scale, c_ViewPort);
-    vecScale(ren->varyDim, 1.0/point1[renVARYW], point1, scale);
+    vecScale(4, 1.0/point1[renVARYW], point1, scale);
     mat441Multiply(ren->viewport, scale, point1_ViewPort);
-    vecScale(ren->varyDim, 1.0/point2[renVARYW], point2, scale);
+    vecScale(4, 1.0/point2[renVARYW], point2, scale);
     mat441Multiply(ren->viewport, scale, point2_ViewPort);
 
     point1_ViewPort[renVARYS] = point1[renVARYS];

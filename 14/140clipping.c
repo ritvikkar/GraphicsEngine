@@ -4,17 +4,18 @@
  * CS 331: Computer Graphics
 */
 
-/*clipViewPort performs the viewport transformation and the homogeneous division
- *one a given vertex
+/* clipViewPort performs the viewport transformation and the homogeneous division
+ * on a given vertex
  */
-void clipViewPort(renRenderer *ren, double vertex[]) {
-    double scale[renVARYDIMBOUND];
-
-    vecScale(ren->attrDim, 1.0/vert[renVARYW], vertex, scale);
-    mat441Multiply(ren->viewport, scale, vertex);
+void clipViewPort(renRenderer *ren, double vertex[], double vertexViewPort[]) {
+    double scale[4];
+    vecScale(4, 1.0/vertex[renVARYW], vertex, scale);
+    mat441Multiply(ren->viewport, scale, vertexViewPort);
+    int i;    
+    vecCopy(ren->varyDim-4,&vertex[4],&vertexViewPort[4]);    
 }
 
-/*clipScale takes in two points a,b and finds a new point that*/
+/* clipScale takes in two points a,b and finds a new point that */
 void clipScale(renRenderer *ren, double unif[], texTexture *tex[],
                 double a[], double b[], double newPoint[])
 {
@@ -24,42 +25,45 @@ void clipScale(renRenderer *ren, double unif[], texTexture *tex[],
     vecScale(ren->attrDim, t1, bMinusA, newPoint);
 }
 
-/*clipOne, i.e. one side is clipped, will emit two triangles*/
+/* clipOne, i.e. one side is clipped, will emit two triangles */
 void clipOne(renRenderer *ren, double unif[], texTexture *tex[], 
 				double a[], double b[], double c[], int clip[]) {
     //new points = t(b-a) & t(c-a)
     //t = (a3 - a2) / (a3 - a2 + b2 - b3)
-    printf("clipOne\n");
 
     double point1[renVARYDIMBOUND],point2[renVARYDIMBOUND];    
     clipScale(ren,unif,tex,a,b,point1);
     clipScale(ren,unif,tex,a,b,point2);        
 
-    clipViewPort(ren,point1);
-    clipViewPort(ren,point2);    
-    clipViewPort(ren,b);
-    clipViewPort(ren,c);
-    triRender(ren, unif, tex, point1, b, c);
-    triRender(ren, unif, tex, point2, b, point1);    
+    double point1_ViewPort[renVARYDIMBOUND], point2_ViewPort[renVARYDIMBOUND],b_ViewPort[renVARYDIMBOUND], c_ViewPort[renVARYDIMBOUND];
+
+    clipViewPort(ren,point1,point1_ViewPort);
+    clipViewPort(ren,point2,point2_ViewPort);    
+    clipViewPort(ren,b,b_ViewPort);
+    clipViewPort(ren,c,c_ViewPort);
+
+    triRender(ren, unif, tex, point1_ViewPort, b_ViewPort, c_ViewPort);
+    triRender(ren, unif, tex, point2_ViewPort, b_ViewPort, point1_ViewPort);    
 }
 
-/*clipTwo, i.e. two sides are clipped, will emit one triangle*/
+/* clipTwo, i.e. two sides are clipped, will emit one triangle */
 void clipTwo(renRenderer *ren, double unif[], texTexture *tex[], 
 				double a[], double b[], double c[], int clip[]) {
-    printf("clipTwo\n");
     
     double point1[renVARYDIMBOUND],point2[renVARYDIMBOUND];    
     clipScale(ren,unif,tex,a,b,point1);
     clipScale(ren,unif,tex,a,b,point2);        
 
-    clipViewPort(ren,point1);
-    clipViewPort(ren,point2);    
-    clipViewPort(ren,b);
-    triRender(ren, unif, tex, point2, b, point1);
+    double point1_ViewPort[renVARYDIMBOUND], point2_ViewPort[renVARYDIMBOUND],b_ViewPort[renVARYDIMBOUND];
+
+    clipViewPort(ren,point1,point1_ViewPort);
+    clipViewPort(ren,point2,point2_ViewPort);    
+    clipViewPort(ren,b,b_ViewPort);
+    triRender(ren, unif, tex, point2_ViewPort, b_ViewPort, point1_ViewPort);
 }
 
-/*chipChecker checks the type of clipping that has occured and assigns
- *which helper should be called
+/* chipChecker checks the type of clipping that has occured and assigns
+ * which helper should be called
  */
 void clipChecker(renRenderer *ren, double unif[], texTexture *tex[], 
 						double a[], double b[], double c[]){
@@ -79,7 +83,6 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     int clip[3];//array to keep flags for clipping
     clip[0]=clip[1]=clip[2]=0;
 
-    printf("%d %d %d\n",clip[0],clip[1],clip[2]);
 
 	//a is clipped
     if (a[renVARYW] <= 0 || a[renVARYZ] > a[renVARYW])
@@ -94,7 +97,6 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     	clip[2] = 1;
 
     
-    printf("%d %d %d\n",clip[0],clip[1],clip[2]);
 
     //all vertices are clipped,render nothing
     if (clip[0] == 1 && clip[1] == 1 && clip[2] == 1)
@@ -104,10 +106,11 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     else if (clip[0] == 0 && clip[1] == 0 && clip[2] == 0)
     {
     	//put the vertices through the viewport transformation
-	    clipViewPort(ren,a);
-	    clipViewPort(ren,b);
-	    clipViewPort(ren,c);
-	    triRender(ren, unif, tex, a, b, c);
+        double a_viewPort[renVARYDIMBOUND], b_ViewPort[renVARYDIMBOUND], c_ViewPort[renVARYDIMBOUND];        
+	    clipViewPort(ren,a,a_viewPort);
+	    clipViewPort(ren,b,b_ViewPort);
+	    clipViewPort(ren,c,c_ViewPort);
+	    triRender(ren, unif, tex, a_viewPort, b_ViewPort, c_ViewPort);
     }
 
     //six remaining cases of clipping
@@ -130,13 +133,13 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
 void clipRender(renRenderer *ren, double unif[], texTexture *tex[], 
 					double a[], double b[], double c[]) {
     //check the orientation of the triangle
-    if (((a[0]<=b[0]) && (a[0]<=c[0]))){
+    if (((a[renVARYW]<=b[renVARYW]) && (a[renVARYW]<=c[renVARYW]))){
         clipChecker(ren,unif,tex,a,b,c); // a is left most
     }
-    else if (((b[0]<=c[0]) && (b[0]<=a[0]))){
+    else if (((b[renVARYW]<=c[renVARYW]) && (b[renVARYW]<=a[renVARYW]))){
         clipChecker(ren,unif,tex,b,c,a); //b is left most
     }
-    else if (((c[0]<=b[0]) && (c[0]<=a[0]))){
+    else if (((c[renVARYW]<=b[renVARYW]) && (c[renVARYW]<=a[renVARYW]))){
         clipChecker(ren,unif,tex,c,a,b); //c is left most
     }
 }
