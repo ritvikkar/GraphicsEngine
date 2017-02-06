@@ -23,6 +23,13 @@
 #define KEY_K 75
 #define KEY_L 76
 
+#define KEY_T 84        // Light Position Controls
+#define KEY_F 70
+#define KEY_G 71
+#define KEY_H 72
+#define KEY_R 82
+#define KEY_Y 89
+
 #define renVARYDIMBOUND 48
 #define renVERTNUMBOUND 1000
 #define depthLimit -1.0
@@ -33,9 +40,9 @@
 #define renATTRZ 2
 #define renATTRS 3
 #define renATTRT 4
-#define renATTRR 5
-#define renATTRG 6
-#define renATTRB 7
+#define renATTRN 5
+#define renATTRO 6
+#define renATTRP 7
 
 #define renVARYX 0
 #define renVARYY 1
@@ -43,6 +50,12 @@
 #define renVARYW 3
 #define renVARYS 4
 #define renVARYT 5
+#define renVARYN 6   // Normal Vector
+#define renVARYO 7
+#define renVARYP 8
+#define renVARYWX 9  // World
+#define renVARYWY 10
+#define renVARYWZ 11
 
 #define renUNIFR 0
 #define renUNIFG 1
@@ -54,8 +67,14 @@
 #define renUNIFX 7  // Trans X
 #define renUNIFY 8  // Trans Y
 #define renUNIFZ 9  // Trans Z
-#define renUNIFI 10 // Isometry, 10 - 25
-#define renUNIFT 26 // Inverse Isometry, 26 - 41
+#define renUNIFLX 10  // Light X
+#define renUNIFLY 11  // Light Y
+#define renUNIFLZ 12  // Light Z
+#define renUNIFLR 13  // Light R
+#define renUNIFLG 14  // Light G
+#define renUNIFLB 15  // Light B
+#define renUNIFI  16  // Isometry, 16 - 31
+#define renUNIFT  32  // Inverse Isometry, 32 - 47
 
 #define renTEXR 0
 #define renTEXG 1
@@ -91,23 +110,41 @@ double fov = pi/6.0;
 double focal = 10.0;
 double ratio = 10.0;
 
+double lightPos[3] = {2.0, 2.0, 2.0};
+double lightRGB[3] = {1.8, 1.8, 1.8};
+
 
 /* Sets rgb, based on the other parameters, which are unaltered. vary is an 
 interpolated varried vector from attribute. */
 void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[], double rgbz[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
 
-    rgbz[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
-    rgbz[1] = tex[0]->sample[renTEXG] * unif[renUNIFG];
-    rgbz[2] = tex[0]->sample[renTEXB] * unif[renUNIFB];
+    // Diffuse lighting
+    double lightDir[3] = {unif[renUNIFLX] - vary[renVARYWX], 
+                          unif[renUNIFLY] - vary[renVARYWY], 
+                          unif[renUNIFLZ] - vary[renVARYWZ]};
+
+    vecUnit(3, lightDir, lightDir);
+    double dot = vecDot(3, &vary[renVARYN], lightDir);
+    double diffIntensity = fmax(0, dot);
+
+    rgbz[0] = tex[0]->sample[renTEXR] * unif[renUNIFR] * diffIntensity * unif[renUNIFLR];
+    rgbz[1] = tex[0]->sample[renTEXG] * unif[renUNIFG] * diffIntensity * unif[renUNIFLG];
+    rgbz[2] = tex[0]->sample[renTEXB] * unif[renUNIFB] * diffIntensity * unif[renUNIFLB];
     rgbz[3] = vary[renVARYZ];
 }
 
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], double vary[]) {
+    // World movement
     double transfer[4];
     double translateAttr[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1.0};
     mat441Multiply((double(*)[4])(&unif[renUNIFI]), translateAttr, transfer);
+
+    // Lighting angle
+    double lightTransfer[4];
+    double lightRotation[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 0.0};
+    mat441Multiply((double(*)[4])(&unif[renUNIFI]), lightRotation, lightTransfer);
 
     // Apply Camera & Projection
     double transfer2[4];
@@ -117,8 +154,14 @@ void transformVertex(renRenderer *ren, double unif[], double attr[], double vary
     vary[renVARYY] = transfer2[1];
     vary[renVARYZ] = transfer2[2];
     vary[renVARYW] = transfer2[3];
+    vary[renVARYWX] = lightTransfer[0];
+    vary[renVARYWY] = lightTransfer[1];
+    vary[renVARYWZ] = lightTransfer[2];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
+    vary[renVARYN] = attr[renATTRN];
+    vary[renVARYO] = attr[renATTRO];
+    vary[renVARYP] = attr[renATTRP];
 }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
@@ -135,6 +178,10 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     // Translation
     double translate[3] = {unif[renUNIFX], unif[renUNIFY], unif[renUNIFZ]};
 
+    // Light
+    vecCopy(3, lightPos, &unif[renUNIFLX]);
+    vecCopy(3, lightRGB, &unif[renUNIFLR]);
+
     // Camera & Projection
     int i;
     for (i = 0; i < 4; i += 1)
@@ -146,7 +193,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     } else {
         double m[4][4];
         mat44Isometry(rotate, translate, m);
-        mat444Multiply((double(*)[4])(&unifParent[renUNIFI]), m, (double(*)[4])(&unif[renUNIFI]));
+        mat444Multiply(
+            (double(*)[4])(&unifParent[renUNIFI]), m, (double(*)[4])(&unif[renUNIFI]));
     }
 }
 
@@ -155,7 +203,7 @@ void setOneUniform(sceneNode *node, int index, double unifData) {
 }
 
 void draw() {
-    pixClearRGB(0.0, 0.0, 0.0);
+    pixClearRGB(0.1, 0.1, 0.1);
     depthClearZs(ren->depth, depthLimit);
     renUpdateViewing(ren);
     sceneRender(scene, ren, NULL);
@@ -249,6 +297,32 @@ void handleKeyDown(int key, int shift, int control, int alt, int command) {
             draw();
             break;
 
+        // Light Position
+        case KEY_H:
+            lightPos[0] += 0.5;
+            draw();
+            break;
+        case KEY_F:
+            lightPos[0] -= 0.5;
+            draw();
+            break;
+        case KEY_T:
+            lightPos[1] += 0.5;
+            draw();
+            break;
+        case KEY_G:
+            lightPos[1] -= 0.5;
+            draw();
+            break;
+        case KEY_Y:
+            lightPos[2] += 0.5;
+            draw();
+            break;
+        case KEY_R:
+            lightPos[2] -= 0.5;
+            draw();
+            break;
+
         // Camera Angle
         case KEY_K:
             phi += pi/64;
@@ -272,8 +346,11 @@ void handleKeyDown(int key, int shift, int control, int alt, int command) {
             break;
         case KEY_SPACE:
             printf("Camera target: %g %g %g\n", target[0], target[1], target[2]);
-            printf("Angle: phi %g (pi/%g), theta %g (pi/%g), rho %g\n", phi, pi/phi, theta, pi/theta, rho);
-            printf("Projection %d, FOV %g (pi/%g), focal distance %g\n", projection, fov, pi/fov, focal);
+            printf("Light Position: %g %g %g\n", lightPos[0], lightPos[1], lightPos[2]);
+            printf("Angle: phi %g (pi/%g), theta %g (pi/%g), rho %g\n", 
+                phi, pi/phi, theta, pi/theta, rho);
+            printf("Projection %d, FOV %g (pi/%g), focal distance %g\n", 
+                projection, fov, pi/fov, focal);
             break;
         default:
             break;
@@ -286,11 +363,13 @@ int main() {
     else {
         pixSetTimeStepHandler(handleTimeStep);
         pixSetKeyDownHandler(handleKeyDown);
-        pixClearRGB(0.0, 0.0, 0.0);
 
         double unif1[renVARYDIMBOUND] = {1.0, 1.0, 1.0,         // RGB
                                          pi/2, 1.0, 0.0, 0.0,   // A, P, W, O
                                          0.0, 0.0, 0.0,         // X, Y, Z
+                                         0.0, 0.0, 0.0,         // Light XYZ
+                                         0.0, 0.0, 0.0,         // Light RGB
+
 
                                          1.0, 0.0, 0.0, 0.0,    // Isometry
                                          0.0, 1.0, 0.0, 0.0,
@@ -307,6 +386,8 @@ int main() {
         double unif2[renVARYDIMBOUND] = {1.0, 1.0, 1.0,
                                          -pi/2, 0.0, 0.0, 1.0,
                                          1.0, 1.0, -1.0,
+                                         2.0, 2.0, 2.0,
+                                         1.0, 1.0, 1.0,
 
                                          1.0, 0.0, 0.0, 0.0,
                                          0.0, 1.0, 0.0, 0.0,
@@ -322,6 +403,8 @@ int main() {
         double unif3[renVARYDIMBOUND] = {1.0, 1.0, 1.0,
                                          0.0, 1.0, 0.0, 0.0,
                                          0.0, 0.0, -5.0,
+                                         2.0, 2.0, 2.0,
+                                         1.0, 1.0, 1.0,
 
                                          1.0, 0.0, 0.0, 0.0,
                                          0.0, 1.0, 0.0, 0.0,
@@ -356,10 +439,10 @@ int main() {
         renRenderer renderer;
         ren = &renderer;
 
-        ren->unifDim = 42;
+        ren->unifDim = 48;
         ren->texNum = 3;
         ren->attrDim = 8;
-        ren->varyDim = 6;
+        ren->varyDim = 12;
         ren->depth = depth;
         ren->transformVertex = transformVertex;
         ren->colorPixel = colorPixel;
@@ -368,18 +451,19 @@ int main() {
         int error = 0;
 
         error += texInitializeFile(tex[0], "Kitten.jpg");
-        error += texInitializeFile(tex[1], "360.jpg");
-        error += texInitializeFile(tex[2], "Rainbow.jpg");
+        // error += texInitializeFile(tex[1], "360.jpg");
+        // error += texInitializeFile(tex[2], "Rainbow.jpg");
 
         error += meshInitializeBox(&mesh1, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        error += meshInitializeSphere(&mesh2, 0.7, 10, 20);
-        error += meshInitializeBox(&mesh3, -5.0, 5.0, -2.0, 2.0, 0.0, 1.0);
+        // error += meshInitializeSphere(&mesh2, 0.7, 10, 20);
+        // error += meshInitializeBox(&mesh3, -5.0, 5.0, -2.0, 2.0, 0.0, 1.0);
 
-        error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, &node2, NULL);
-        error += sceneInitialize(&node2, ren, unif2, &tex[1], &mesh2, NULL, NULL);
-        error += sceneInitialize(&node3, ren, unif3, &tex[2], &mesh3, NULL, NULL);
+        error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, NULL, NULL);
+        // error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, &node2, NULL);
+        // error += sceneInitialize(&node2, ren, unif2, &tex[1], &mesh2, NULL, NULL);
+        // error += sceneInitialize(&node3, ren, unif3, &tex[2], &mesh3, NULL, NULL);
 
-        sceneAddChild(&node1, &node3);
+        // sceneAddChild(&node1, &node3);
 
         error += depthInitialize(depth, 512, 512);
 
@@ -401,12 +485,12 @@ int main() {
         pixRun();
 
         meshDestroy(&mesh1);
-        meshDestroy(&mesh2);
-        meshDestroy(&mesh3);
+        // meshDestroy(&mesh2);
+        // meshDestroy(&mesh3);
 
         texDestroy(tex[0]);
-        texDestroy(tex[1]);
-        texDestroy(tex[2]);
+        // texDestroy(tex[1]);
+        // texDestroy(tex[2]);
 
         depthDestroy(depth);
 

@@ -1,16 +1,13 @@
 /* Martin Green (greenm2), CS 311 Graphics */
 /* January 2017 */
 
-#include <stdio.h>
-
 /*** 2 x 2 Matrices ***/
 
 /* Pretty-prints the given matrix, with one line of text per row of matrix. */
 void mat22Print(double m[2][2]) {
     int i;
-    for (i = 0; i < 2; i += 1) {
+    for (i = 0; i < 2; i += 1)
         printf("%8.2f  %8.2f\n", m[i][0], m[i][1]);
-    }
 }
 
 double mat22Det(double m[2][2]) {
@@ -19,11 +16,9 @@ double mat22Det(double m[2][2]) {
 
 void mat22Scale(double m[2][2], double scalar) {
     int i, j;
-    for (i = 0; i < 2; i += 1) {
-        for (j = 0; j < 2; j += 1) {
+    for (i = 0; i < 2; i += 1)
+        for (j = 0; j < 2; j += 1)
             m[i][j] = scalar * m[i][j];
-        }
-    }
 }
 
 /* Returns the determinant of the matrix m. If the determinant is 0.0, then the 
@@ -51,17 +46,12 @@ The output should not */
 void mat221Multiply(double m[2][2], double v[2], double mTimesV[2]) {
     int i, j;
 
-    // Clear the array
-    for (i = 0; i < 2; i += 1) {
-        mTimesV[i] = 0;
-    }
+    for (i = 0; i < 2; i += 1)
+        mTimesV[i] = 0.0;
 
-    // Populate it
-    for (i = 0; i < 2; i += 1) {
-        for (j = 0; j < 2; j += 1) {
+    for (i = 0; i < 2; i += 1)
+        for (j = 0; j < 2; j += 1)
             mTimesV[i] += m[i][j]*v[j];
-        }
-    }
 }
 
 /* Fills the matrix m from its two columns. */
@@ -77,14 +67,10 @@ void mat22Columns(double col0[2], double col1[2], double m[2][2]) {
 void mat333Multiply(double m[3][3], double n[3][3], double mTimesN[3][3]) {
     int i, j, k;
 
-    // Clear the array
-    for (i = 0; i < 3; i += 1) {
-        for (j = 0; j < 3; j += 1) {
-            mTimesN[i][j] = 0;
-        }
-    }
+    for (i = 0; i < 3; i += 1)
+        for (j = 0; j < 3; j += 1)
+            mTimesN[i][j] = 0.0;
 
-    // Populate it
     for (i = 0; i < 3; i += 1)
         for (j = 0; j < 3; j += 1)
             for (k = 0; k < 3; k += 1)
@@ -95,17 +81,12 @@ void mat333Multiply(double m[3][3], double n[3][3], double mTimesN[3][3]) {
 void mat331Multiply(double m[3][3], double v[3], double mTimesV[3]) {
     int i, j;
 
-    // Clear the array
-    for (i = 0; i < 3; i += 1) {
-        mTimesV[i] = 0;
-    }
+    for (i = 0; i < 3; i += 1)
+        mTimesV[i] = 0.0;
 
-    // Populate it
-    for (i = 0; i < 3; i += 1) {
-        for (j = 0; j < 3; j += 1) {
+    for (i = 0; i < 3; i += 1)
+        for (j = 0; j < 3; j += 1)
             mTimesV[i] += m[i][j]*v[j];
-        }
-    }
 }
 
 /* Builds a 3x3 matrix representing 2D rotation and translation in homogeneous 
@@ -179,14 +160,10 @@ void mat33BasisRotation(double u[3], double v[3], double a[3], double b[3], doub
 void mat444Multiply(double m[4][4], double n[4][4], double mTimesN[4][4]) {
     int i, j, k;
 
-    // Clear the array
-    for (i = 0; i < 4; i += 1) {
-        for (j = 0; j < 4; j += 1) {
-            mTimesN[i][j] = 0;
-        }
-    }
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
+            mTimesN[i][j] = 0.0;
 
-    // Populate it
     for (i = 0; i < 4; i += 1)
         for (j = 0; j < 4; j += 1)
             for (k = 0; k < 4; k += 1)
@@ -198,17 +175,12 @@ void mat444Multiply(double m[4][4], double n[4][4], double mTimesN[4][4]) {
 void mat441Multiply(double m[4][4], double v[4], double mTimesV[4]) {
     int i, j;
 
-    // Clear the array
-    for (i = 0; i < 4; i += 1) {
-        mTimesV[i] = 0;
-    }
+    for (i = 0; i < 4; i += 1)
+        mTimesV[i] = 0.0;
 
-    // Populate it
-    for (i = 0; i < 4; i += 1) {
-        for (j = 0; j < 4; j += 1) {
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
             mTimesV[i] += m[i][j]*v[j];
-        }
-    }
 }
 
 /* Given a rotation and a translation, forms the 4x4 homogeneous matrix 
@@ -268,10 +240,9 @@ void mat44Orthographic(double left, double right, double bottom, double top,
         double far, double near, double proj[4][4]) {
 
     int i, j;
-    for (i = 0; i < 4; i += 1) {
+    for (i = 0; i < 4; i += 1)
         for (j = 0; j < 4; j += 1)
             proj[i][j] = 0.0;
-    }
 
     proj[0][0] = 2 / (right - left);
     proj[0][3] = (-right - left) / (right - left);
@@ -310,10 +281,9 @@ void mat44Perspective(double left, double right, double bottom, double top,
         double far, double near, double proj[4][4]) {
 
     int i, j;
-    for (i = 0; i < 4; i += 1) {
+    for (i = 0; i < 4; i += 1)
         for (j = 0; j < 4; j += 1)
             proj[i][j] = 0.0;
-    }
 
     proj[0][0] = (-2 * near) / (right - left);
     proj[0][2] = (right + left) / (right - left);
