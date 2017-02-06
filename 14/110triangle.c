@@ -4,7 +4,8 @@
  * CS 331: Computer Graphics
 */
 
-/*interpolate the coordinates here*/
+/* interpolate the coordenates here and then
+   compare depths and pass to colorPixel */
 void interpolate(double a[], double b[], double c[],
         double x[], texTexture *tex[], renRenderer *ren, double unif[]){
     //INTERPOLATION BEGINS
@@ -28,8 +29,8 @@ void interpolate(double a[], double b[], double c[],
     mat221Multiply(bacaInv,xa,pq);//[p q]
 
     double bMinusA[renVARYDIMBOUND], cMinusA[renVARYDIMBOUND];
-    vecSubtract(ren->varyDim,b,a,bMinusA);//b-a but sized attrDim
-    vecSubtract(ren->varyDim,c,a,cMinusA);//c-a but sized attrDim
+    vecSubtract(ren->varyDim,b,a,bMinusA);//b-a but sized varyDim
+    vecSubtract(ren->varyDim,c,a,cMinusA);//c-a but sized varyDim
 
     double scaleP[ren->varyDim],scaleQ[ren->varyDim],addPQ[ren->varyDim];
     vecScale(ren->varyDim,pq[0],bMinusA,scaleP);//p(b-a)
@@ -38,17 +39,24 @@ void interpolate(double a[], double b[], double c[],
     vecAdd(ren->varyDim,scaleP,scaleQ,addPQ);
     double khi[ren->varyDim];
     vecAdd(ren->varyDim,addPQ,a,khi);
+    
     //INTERPOLATION ENDS
+    
     double rgbz[4];
 
     ren->colorPixel(ren, unif, tex, khi, rgbz); //run color pixel first
+    
+    /* depth is compared to depth buffer and if the depth 
+       is higher then depth buffer is updated */
+
     if(khi[renVARYZ] > depthGetZ(ren->depth, x[0], x[1])){
         pixSetRGB(x[0],x[1], rgbz[0], rgbz[1], rgbz[2]);
         depthSetZ(ren->depth,x[0],x[1],khi[renVARYZ]);
-    }/* depth is compared to depth buffer and if the depth 
-       is higher then depth buffer is updated */
+    }
 }
 
+/* helper function recieves the vertices with a to the left
+   and perform the actual rasterization */
 void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
         double a[], double b[], double c[])
 {
@@ -130,6 +138,8 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
     }
 }
 
+/* receives a triangle, and sends a triangle with 'a'
+   as the left morst vertex */
 void triRender(renRenderer *ren, double unif[], texTexture *tex[], double a[], 
         double b[], double c[])
 {

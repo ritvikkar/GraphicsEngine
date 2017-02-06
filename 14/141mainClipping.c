@@ -148,11 +148,11 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 #include "140mesh.c"
 #include "090scene.c"
 
-sceneNode scene0; //actual scene type
+sceneNode scene0; //scene type variable
 sceneNode scene1;
 sceneNode scene2;
 
-meshMesh mesh0;
+meshMesh mesh0; //mesh type variable
 meshMesh mesh1;
 meshMesh mesh2;
 
@@ -160,6 +160,7 @@ renRenderer ren;
 texTexture *tex[3]; //pointer to textures types
 depthBuffer dep;
 
+/* actually gives the draw command */
 void draw(void){
     renUpdateViewing(&ren);
     depthClearZs(&dep,-10000);
@@ -173,6 +174,7 @@ double camera[2] = {M_PI/2,0.0};
 double zoom = 10;
 double viewing[3] = {0.0, 1.0, 0.0};
 
+/* handles the key clicks for the program */
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDown, int superCommandIsDown) {
     if (key == GLFW_KEY_ENTER) {
         if (tex[0]->filtering == texNEAREST) {
@@ -231,6 +233,7 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     key, shiftIsDown, controlIsDown, altOptionIsDown, superCommandIsDown);
 }
 
+/* handles the animations with the time difference in frames */
 void handleTimeStep(double oldTime, double newTime) {
     if (floor(newTime) - floor(oldTime) >= 1.0)
         printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
