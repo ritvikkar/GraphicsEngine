@@ -1,5 +1,5 @@
 /*
- * 160mainDiffuse.c
+ * 180mainAmbient.c
  * by Ritvik Kar
  * CS 331: Computer Graphics
 */
@@ -55,27 +55,36 @@
 #define renUNIFRHO 0 //angles
 #define renUNIFPHI 1
 #define renUNIFTHETA 2
-#define renUNIFTRANSX 3 //trans xyz
+#define renUNIFTRANSX 3 //trans XYZ
 #define renUNIFTRANSY 4
 #define renUNIFTRANSZ 5
-#define renUNIFLIGHTX 6 //light xyz
+#define renUNIFLIGHTX 6 //light XYZ
 #define renUNIFLIGHTY 7
 #define renUNIFLIGHTZ 8
 #define renUNIFLIGHTR 9 //light RGB
 #define renUNIFLIGHTG 10
 #define renUNIFLIGHTB 11
-#define renUNIFISOMETRY 12 //isometry
-#define renUNIFVIEWING 28 //viewing
-
+#define renUNIFSHINE 12  //object shininess factor
+#define renUNIFAMBIENCE 13  //ambient light
+#define renUNIFWORLDCAMX 14 //camera XYZ
+#define renUNIFWORLDCAMY 15
+#define renUNIFWORLDCAMZ 16
+#define renUNIFREFLECTIONR 17
+#define renUNIFREFLECTIONG 18
+#define renUNIFREFLECTIONB 19
+#define renUNIFISOMETRY 20 //isometry
+#define renUNIFVIEWING 36 //viewing
 
 #define renTEXR 0
 #define renTEXG 1
 #define renTEXB 2
 
-double unif[38] = {0.0,0.0,0.0,
+double unif[52] = {0.0,0.0,0.0,
                    1.0,0.0,-1.05,
                    0.0,0.0,0.0,
                    0.0,0.0,0.0,
+                   0.0,0.0,0.0,
+                   0.0,0.0,
                    1.0,0.0,0.0,0.0,
                    0.0,1.0,0.0,0.0,
                    0.0,0.0,1.0,0.0,
@@ -85,10 +94,12 @@ double unif[38] = {0.0,0.0,0.0,
                    0.0,0.0,0.0,0.0,
                    0.0,0.0,0.0,0.0};
 
-double unif2[38] = {0.0,0.0,0.0,
+double unif2[52] = {0.0,0.0,0.0,
                     0.0,0.0,0.0,
                     0.0,0.0,0.0,
                     0.0,0.0,0.0,
+                    0.0,0.0,0.0,
+                    0.0,0.0,
                     1.0,0.0,0.0,0.0,
                     0.0,1.0,0.0,0.0,
                     0.0,0.0,1.0,0.0,
@@ -119,9 +130,19 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     double nDotL = vecDot(3, &vary[renVARYN], l);
     double diffInt = fmax(0, nDotL);
 
-    rgbz[0] = tex[0]->sample[renTEXR] * diffInt * unif[renUNIFLIGHTR];
-    rgbz[1] = tex[0]->sample[renTEXG] * diffInt * unif[renUNIFLIGHTG];
-    rgbz[2] = tex[0]->sample[renTEXB] * diffInt * unif[renUNIFLIGHTB];
+    //specular lighting r = 2 ( n - l ) n - l
+    vecScale(3, 2 * nDotL, &vary[renVARYN], &unif[renUNIFREFLECTIONR]);
+    vecSubtract(3, &unif[renUNIFREFLECTIONR], l, &unif[renUNIFREFLECTIONR]);
+    unif[renUNIFSHINE] = vecDot(3, &unif[renUNIFWORLDCAMX],  &unif[renUNIFREFLECTIONR]);
+    double specInt = pow(fmax(0,unif[renUNIFSHINE]),1);
+
+    //ambient lighting
+    double totalInt = fmax(diffInt, unif[renUNIFAMBIENCE]) + 2 * specInt;
+
+
+    rgbz[0] = tex[0]->sample[renTEXR] * totalInt * unif[renUNIFLIGHTR];
+    rgbz[1] = tex[0]->sample[renTEXG] * totalInt * unif[renUNIFLIGHTG];
+    rgbz[2] = tex[0]->sample[renTEXB] * totalInt * unif[renUNIFLIGHTB];
     rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
 }
 
@@ -174,6 +195,11 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     //update the Light Unifs
     vecCopy(3,lightSource,&unif[renUNIFLIGHTX]);
     vecCopy(3,lightRGB,&unif[renUNIFLIGHTR]);
+
+    //update the Camera Unifs
+    vecCopy(3, ren->cameraTranslation, &unif[renUNIFWORLDCAMX]);
+    //make the camera direction a unit vector    
+    vecUnit(3, &unif[renUNIFWORLDCAMX], &unif[renUNIFWORLDCAMX]); 
 
     if (unifParent == NULL){
         /* The nine uniforms for storing the matrix start at index 
@@ -302,7 +328,7 @@ int main(void) {
 
         depthInitialize(&dep,512,512);
         ren.attrDim = 8; ren.varyDim = 12; 
-        ren.unifDim = 48; ren.texNum = 1; 
+        ren.unifDim = 52; ren.texNum = 1; 
         ren.colorPixel = colorPixel;
         ren.transformVertex = transformVertex;
         ren.updateUniform = updateUniform;
