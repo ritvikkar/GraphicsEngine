@@ -1,31 +1,31 @@
 /* Martin Green (greenm2), CS 311 Graphics */
-/* January 2017 */
+/* February 2017 */
 
-#define KEY_ENTER 257
-#define KEY_SPACE 32
+#define KEY_ENTER 257   // Texture Filtering
+#define KEY_SPACE 32    // Info Printout
 
-#define KEY_LEFT 263
+#define KEY_LEFT  263   // Frustum Controls
 #define KEY_RIGHT 262
-#define KEY_UP 265
-#define KEY_DOWN 264
+#define KEY_UP    265
+#define KEY_DOWN  264
 
-#define KEY_M 77
+#define KEY_M 77        // Switch Projection
 
-#define KEY_W 87
+#define KEY_W 87        // Camera Position Controls
 #define KEY_A 65
 #define KEY_S 83
 #define KEY_D 68
 #define KEY_Q 81
 #define KEY_E 69
 
-#define KEY_I 73
+#define KEY_I 73        // Camera Angle Controls
 #define KEY_J 74
 #define KEY_K 75
 #define KEY_L 76
 
 #define renVARYDIMBOUND 48
 #define renVERTNUMBOUND 1000
-#define depthLimit -10000.0
+#define depthLimit -1.0
 #define pi M_PI
 
 #define renATTRX 0
@@ -43,9 +43,6 @@
 #define renVARYW 3
 #define renVARYS 4
 #define renVARYT 5
-// #define renVARYR 6
-// #define renVARYG 7
-// #define renVARYB 8
 
 #define renUNIFR 0
 #define renUNIFG 1
@@ -73,7 +70,6 @@
 #include "040texture.c"
 #include "110depth.c"
 #include "130renderer.c"
-// #include "triangle.h"
 #include "110triangle.c"
 #include "140clipping.c"
 #include "140mesh.c"
@@ -86,14 +82,10 @@ depthBuffer *depth;
 int texFiltering;
 int projection;
 
-// double position[3] = {-0.2, -0.78, 4.84};
-double position[3] = {0.29, 0.29, 0.0};
+double target[3] = {0.0, 0.0, 0.0};
+double rho = 10.0;
 double phi = pi/4;
-// double position[3] = {0.0, 3.0, -5.0};
-// double phi = 3.53;
-double theta = pi/4;
-double rho = 1.5;
-double angle = 0.0;
+double theta = pi/-4;
 
 double fov = pi/6.0;
 double focal = 10.0;
@@ -102,9 +94,7 @@ double ratio = 10.0;
 
 /* Sets rgb, based on the other parameters, which are unaltered. vary is an 
 interpolated varried vector from attribute. */
-void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], 
-                double vary[], double rgbz[]) {
-
+void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[], double rgbz[]) {
     texSample(tex[0], vary[renVARYS], vary[renVARYT]);
 
     rgbz[0] = tex[0]->sample[renTEXR] * unif[renUNIFR];
@@ -115,39 +105,13 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[],
 
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], double vary[]) {
-
     double transfer[4];
     double translateAttr[4] = {attr[renATTRX], attr[renATTRY], attr[renATTRZ], 1.0};
     mat441Multiply((double(*)[4])(&unif[renUNIFI]), translateAttr, transfer);
 
-    
-
-    // Camera
+    // Apply Camera & Projection
     double transfer2[4];
     mat441Multiply((double(*)[4])(&unif[renUNIFT]), transfer, transfer2);
-
-    // Viewport
-    // printf("transfer2 %g %g %g %g\n", transfer2[0], transfer2[1], transfer2[2], transfer2[3]);
-    
-    // vecScale(4, 1 / transfer2[3], transfer2, transfer2);
-    // double transfer3[4];
-    // mat441Multiply(ren->viewport, transfer2, transfer3);
-    // vecCopy(4, transfer3, transfer2);
-
-    // printf("transfer2 %g %g %g %g\n", transfer2[0], transfer2[1], transfer2[2], transfer2[3]);
-    // printf("transfer3 %g %g %g %g\n", transfer3[0], transfer3[1], transfer3[2], transfer3[3]);
-
-    // printf("unifT looks like this:\n");
-    // int i = 0, j;
-    // for (j = 0; j < 4; j += 1) {
-    //     int lim = i;
-    //     for (i = i; i < lim + 4; i += 1) {
-    //         printf("%f\t", unif[renUNIFT + i]);
-    //     }
-    //     printf("\n");
-    // }
-
-
 
     vary[renVARYX] = transfer2[0];
     vary[renVARYY] = transfer2[1];
@@ -155,8 +119,6 @@ void transformVertex(renRenderer *ren, double unif[], double attr[], double vary
     vary[renVARYW] = transfer2[3];
     vary[renVARYS] = attr[renATTRS];
     vary[renVARYT] = attr[renATTRT];
-
-    // printf("transformVertex %g %g\n", vary[renVARYX], vary[renVARYY]);
 }
 
 /* If unifParent is NULL, then sets the uniform matrix to the 
@@ -175,8 +137,8 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
 
     // Camera & Projection
     int i;
-    for (i = 0; i < 16; i += 1)
-        unif[renUNIFT+i] = ren->viewing[i];
+    for (i = 0; i < 4; i += 1)
+        vecCopy(4, ren->viewing[i], &unif[renUNIFT + (i*4)]);
 
     // Application
     if (unifParent == NULL) {
@@ -193,23 +155,16 @@ void setOneUniform(sceneNode *node, int index, double unifData) {
 }
 
 void draw() {
-    // printf("------------\n");
     pixClearRGB(0.0, 0.0, 0.0);
     depthClearZs(ren->depth, depthLimit);
     renUpdateViewing(ren);
     sceneRender(scene, ren, NULL);
-    // printf("------------\n");
 }
 
 void handleTimeStep(double oldTime, double newTime) {
     // if (floor(newTime) - floor(oldTime) >= 1.0) {
     //     printf("handleTimeStep: %f frames/sec\n", 1.0 / (newTime - oldTime));
     // }
-
-    // angle -= 0.05;
-    // setOneUniform(scene, renUNIFA, angle);
-    // draw();
-
 }
 
 void handleKeyDown(int key, int shift, int control, int alt, int command) {
@@ -262,62 +217,63 @@ void handleKeyDown(int key, int shift, int control, int alt, int command) {
             draw();
             break;
 
-        // Camera
+        // Camera Target
         case KEY_D:
-            position[0] += 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            target[0] += 0.05;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_A:
-            position[0] -= 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            target[0] -= 0.05;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_W:
-            position[1] += 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            target[1] += 0.05;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_S:
-            position[1] -= 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            target[1] -= 0.05;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_E:
-            rho += 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            rho += 0.05;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_Q:
-            rho -= 0.01;
-            renLookAt(ren, position, rho, phi, theta);
+            rho -= 0.05;
+            renLookAt(ren, target, rho, phi, theta);
+            draw();
+            break;
+
+        // Camera Angle
+        case KEY_K:
+            phi += pi/64;
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_I:
-            phi += pi/64;
-            renLookAt(ren, position, rho, phi, theta);
-            draw();
-            break;
-        case KEY_K:
             phi -= pi/64;
-            renLookAt(ren, position, rho, phi, theta);
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_L:
             theta += pi/64;
-            renLookAt(ren, position, rho, phi, theta);
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_J:
             theta -= pi/64;
-            renLookAt(ren, position, rho, phi, theta);
+            renLookAt(ren, target, rho, phi, theta);
             draw();
             break;
         case KEY_SPACE:
-            printf("Camera position: %g %g %g\n", position[0], position[1], position[2]);
+            printf("Camera target: %g %g %g\n", target[0], target[1], target[2]);
             printf("Angle: phi %g (pi/%g), theta %g (pi/%g), rho %g\n", phi, pi/phi, theta, pi/theta, rho);
-            printf("Projection %d, FOV %g (pi/%g), focal distance %g\n", 
-                projection, fov, pi/fov, focal);
+            printf("Projection %d, FOV %g (pi/%g), focal distance %g\n", projection, fov, pi/fov, focal);
             break;
         default:
             break;
@@ -333,7 +289,7 @@ int main() {
         pixClearRGB(0.0, 0.0, 0.0);
 
         double unif1[renVARYDIMBOUND] = {1.0, 1.0, 1.0,         // RGB
-                                         0.0, 1.0, 0.0, 0.0,    // A, P, W, O
+                                         pi/2, 1.0, 0.0, 0.0,   // A, P, W, O
                                          0.0, 0.0, 0.0,         // X, Y, Z
 
                                          1.0, 0.0, 0.0, 0.0,    // Isometry
@@ -350,7 +306,7 @@ int main() {
         // Upper Ball
         double unif2[renVARYDIMBOUND] = {1.0, 1.0, 1.0,
                                          -pi/2, 0.0, 0.0, 1.0,
-                                         0.8, 0.0, -20.0,
+                                         1.0, 1.0, -1.0,
 
                                          1.0, 0.0, 0.0, 0.0,
                                          0.0, 1.0, 0.0, 0.0,
@@ -365,7 +321,7 @@ int main() {
         // Back Wall
         double unif3[renVARYDIMBOUND] = {1.0, 1.0, 1.0,
                                          0.0, 1.0, 0.0, 0.0,
-                                         -100.0, 0.0, -500.0,
+                                         0.0, 0.0, -5.0,
 
                                          1.0, 0.0, 0.0, 0.0,
                                          0.0, 1.0, 0.0, 0.0,
@@ -415,17 +371,15 @@ int main() {
         error += texInitializeFile(tex[1], "360.jpg");
         error += texInitializeFile(tex[2], "Rainbow.jpg");
 
-
         error += meshInitializeBox(&mesh1, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        // error += meshInitializeBox(&mesh1, 0, 0.2, 0, 0.2, 0, 0.2);
-        // error += meshInitializeSphere(&mesh1, 1.5, 2, 4);
-        error += meshInitializeSphere(&mesh2, 1.5, 10, 20);
-        // error += meshInitializeBox(&mesh3, -500.0, 500.0, -200.0, 200.0, 0.0, 100.0);
+        error += meshInitializeSphere(&mesh2, 0.7, 10, 20);
+        error += meshInitializeBox(&mesh3, -5.0, 5.0, -2.0, 2.0, 0.0, 1.0);
 
-        error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, NULL, NULL);
-        // error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, &node2, NULL);
-        // error += sceneInitialize(&node2, ren, unif2, &tex[1], &mesh2, NULL, NULL);
-        // error += sceneInitialize(&node3, ren, unif3, &tex[2], &mesh3, NULL, NULL);
+        error += sceneInitialize(&node1, ren, unif1, &tex[0], &mesh1, &node2, NULL);
+        error += sceneInitialize(&node2, ren, unif2, &tex[1], &mesh2, NULL, NULL);
+        error += sceneInitialize(&node3, ren, unif3, &tex[2], &mesh3, NULL, NULL);
+
+        sceneAddChild(&node1, &node3);
 
         error += depthInitialize(depth, 512, 512);
 
@@ -434,23 +388,21 @@ int main() {
             return 1;
         }
 
-        // renSetFrustum(ren, renORTHOGRAPHIC, pi/6.0, 10.0, 10.0);
-        int projection = renPERSPECTIVE;
+        projection = renPERSPECTIVE;
         renSetFrustum(ren, projection, fov, focal, ratio);
-        // renSetFrustum(ren, renPERSPECTIVE, pi/6.0, 10.0, 10.0);
 
-        texSetFiltering(tex[0], texQUADRATIC);
-        texSetFiltering(tex[1], texQUADRATIC);
-        texSetFiltering(tex[2], texQUADRATIC);
         texFiltering = texQUADRATIC;
-
-        renLookAt(ren, position, rho, phi, theta);
+        texSetFiltering(tex[0], texFiltering);
+        texSetFiltering(tex[1], texFiltering);
+        texSetFiltering(tex[2], texFiltering);
+        
+        renLookAt(ren, target, rho, phi, theta);
         draw();
         pixRun();
 
         meshDestroy(&mesh1);
-        // meshDestroy(&mesh2);
-        // meshDestroy(&mesh3);
+        meshDestroy(&mesh2);
+        meshDestroy(&mesh3);
 
         texDestroy(tex[0]);
         texDestroy(tex[1]);

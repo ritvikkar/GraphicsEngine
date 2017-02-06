@@ -1,5 +1,5 @@
 /* Martin Green (greenm2), CS 311 Graphics */
-/* January 2017 */
+/* February 2017 */
 
 #define renORTHOGRAPHIC 0
 #define renPERSPECTIVE 1
@@ -16,7 +16,7 @@ struct renRenderer {
     depthBuffer *depth;
     double cameraRotation[3][3];
     double cameraTranslation[3];
-    double viewing[16];
+    double viewing[4][4];
     double projection[6];
     double viewport[4][4];
     void (*colorPixel)(renRenderer*, double[], texTexture**, double[], double[]);
@@ -71,53 +71,12 @@ void renUpdateViewing(renRenderer *ren) {
             ren->projection[renPROJF], ren->projection[renPROJN], projection);
     }
 
-    // viewing
     double camera[4][4];
     mat44InverseIsometry(ren->cameraRotation, 
                          ren->cameraTranslation, 
                          camera);
 
-    // printf("projection looks like this:\n");
-    // int i, j;
-    // for (j = 0; j < 4; j += 1) {
-    //     for (i = 0; i < 4; i += 1) {
-    //         printf("%f\t", projection[j][i]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // printf("camera looks like this:\n");
-    // for (j = 0; j < 4; j += 1) {
-    //     for (i = 0; i < 4; i += 1) {
-    //         printf("%f\t", camera[j][i]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // printf("viewport looks like this:\n");
-    // for (j = 0; j < 4; j += 1) {
-    //     for (i = 0; i < 4; i += 1) {
-    //         printf("%f\t", ren->viewport[j][i]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // double transfer[4][4];
-    mat444Multiply(projection, camera, (double(*)[4])(&ren->viewing));
-
-    // mat444Multiply(tempViewport, transfer, (double(*)[4])(&ren->viewing));
-
-    // printf("viewing looks like this:\n");
-    // i = 0;
-    // for (j = 0; j < 4; j += 1) {
-    //     int lim = i;
-    //     for (i = i; i < lim + 4; i += 1) {
-    //         printf("%f\t", ren->viewing[i]);
-    //     }
-    //     printf("\n");
-    // }
-
-
+    mat444Multiply(projection, camera, ren->viewing);
 }
 
 /* Sets the projection type, to either renORTHOGRAPHIC or renPERSPECTIVE. */
