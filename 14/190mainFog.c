@@ -23,6 +23,16 @@
 #define GLFW_KEY_DOWN 264
 #define GLFW_KEY_UP 265
 
+#define GLFW_KEY_LIGHT_LEFT 324
+#define GLFW_KEY_LIGHT_RIGHT 326
+#define GLFW_KEY_LIGHT_UP 328
+#define GLFW_KEY_LIGHT_DOWN 325
+#define GLFW_KEY_LIGHT_IN 321
+#define GLFW_KEY_LIGHT_OUT 323
+
+#define GLFW_KEY_OBJECT_SHINEUP 44
+#define GLFW_KEY_OBJECT_SHINEDOWN 46
+
 #define GLFW_KEY_ZOOM_IN 334
 #define GLFW_KEY_ZOOM_OUT 333
 
@@ -114,11 +124,13 @@ double unif2[55] = {0.0,0.0,0.0,
                     0.0,0.0,0.0,0.0,
                     0.0,0.0,0.0,0.0};
 
-double lightSource[3] = {2.0, 2.0, 2.0};
+double lightSource[3] = {1.0, 2.0, 2.0};
 double lightRGB[3] = {1.0, 1.0, 1.0};
 double camera[2] = {M_PI/2,0.0};
 double zoom = 10;
 double viewing[3] = {0.0, 1.0, 0.0};
+double ambience = 0.6;
+double shine = 4.0;
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. can also add effects to the rgbz depending on what
@@ -128,8 +140,8 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
 
     //diffused lighting
     double l[3] = {unif[renUNIFLIGHTX] - vary[renVARYWORLDX], 
-                          unif[renUNIFLIGHTY] - vary[renVARYWORLDY], 
-                          unif[renUNIFLZ] - vary[renVARYWZ]};
+                   unif[renUNIFLIGHTY] - vary[renVARYWORLDY], 
+                   unif[renUNIFLIGHTZ] - vary[renVARYWORLDZ]};
 
     vecUnit(3, l, l);
     double nDotL = vecDot(3, &vary[renVARYN], l);
@@ -146,7 +158,7 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
 
     //fog = ( (z+1)/z ) * c + ( 1 - (z+1)/z ) * g
     double z = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
-    vecScale(3,1/z,(z+1),z);
+    z = (z+1)/z;
 
     double zg[3];
     vecScale(3,(1-z),&unif[renUNIFFOGR],zg);
@@ -177,7 +189,7 @@ void transformVertex(renRenderer *ren, double unif[], double attr[], double vary
     //light transformations
     double light[4];
     double lightNOP0[4] = {attr[renATTRN], attr[renATTRO], attr[renATTRP], 0.0};
-    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), lightXYZ0, light);
+    mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]), lightNOP0, light);
 
     vary[renVARYX] = MtimesRXYZ[0];
     vary[renVARYY] = MtimesRXYZ[1];
@@ -214,12 +226,15 @@ void updateUniform(renRenderer *ren, double unif[], double unifParent[]) {
     vecCopy(3,lightSource,&unif[renUNIFLIGHTX]);
     vecCopy(3,lightRGB,&unif[renUNIFLIGHTR]);
 
+    unif[renUNIFAMBIENCE] = ambience;
+    unif[renUNIFSHINE] = shine;
+
     //update the Camera Unifs
     vecCopy(3, ren->cameraTranslation, &unif[renUNIFWORLDCAMX]);
     //make the camera direction a unit vector    
     vecUnit(3, &unif[renUNIFWORLDCAMX], &unif[renUNIFWORLDCAMX]); 
 
-    //shine
+    //fog
     unif[renUNIFFOGR] = 0.5;
     unif[renUNIFFOGG] = 0.5;
     unif[renUNIFFOGB] = 0.5;
@@ -266,15 +281,15 @@ void draw(void){
 
 /* handles the key clicks for the program */
 void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDown, int superCommandIsDown) {
-    if (key == GLFW_KEY_ENTER) {
-        if (tex[0]->filtering == texNEAREST) {
-            texSetFiltering(tex[0], texQUADRATIC);
-        }else {
+    /*if (key == GLFW_KEY_ENTER) {
+        if (tex[0]->filtering == texQUADRATIC) {
             texSetFiltering(tex[0], texNEAREST);
+        }else {
+            texSetFiltering(tex[0], texQUADRATIC);
         }
-    } 
+    }*/ 
 
-    else if (key == GLFW_KEY_UP) {
+    if (key == GLFW_KEY_UP) {
         if (camera[0] + 0.05 > M_PI) {
             camera[0] = 0.01;
         }else{
@@ -319,6 +334,38 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
         }
     }
 
+    else if (key == GLFW_KEY_LIGHT_LEFT){
+        lightSource[0] = lightSource[0] + 0.5;
+    }
+
+    else if (key == GLFW_KEY_LIGHT_RIGHT){
+        lightSource[0] = lightSource[0] - 0.5;
+    }
+
+    else if (key == GLFW_KEY_LIGHT_UP){
+        lightSource[1] = lightSource[1] + 0.5;
+    }
+
+    else if (key == GLFW_KEY_LIGHT_DOWN){
+        lightSource[1] = lightSource[1] - 0.5;
+    }
+
+    else if (key == GLFW_KEY_LIGHT_IN){
+        lightSource[2] = lightSource[2] + 0.5;
+    }
+
+    else if (key == GLFW_KEY_LIGHT_OUT){
+        lightSource[2] = lightSource[2] - 0.5;
+    }
+
+    else if (key == GLFW_KEY_OBJECT_SHINEUP){
+        shine = shine + 1.0;
+    }
+
+    else if (key == GLFW_KEY_OBJECT_SHINEDOWN){
+        shine = shine - 1.0;
+    }
+
     draw();
 
     printf("key up %d, shift %d, control %d, altOpt %d, supComm %d\n",
@@ -360,7 +407,7 @@ int main(void) {
 
         meshInitializeSphere(&mesh0, 1, 20, 20);
         sceneInitialize(&scene0,&ren,unif,tex,&mesh0,NULL,NULL);
-      
+        texSetFiltering(tex[0], texQUADRATIC);
         renSetFrustum(&ren, renPERSPECTIVE, M_PI/6.0, 10.0, 10.0);
 
         draw();
