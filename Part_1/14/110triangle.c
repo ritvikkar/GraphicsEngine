@@ -62,11 +62,24 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
 {
     int i, j;
     double xHigh, xLow;
+    int width = ren->depth->width;
+    int height = ren->depth->height;
+
     if(c[0]==a[0]){
         for(i = ceil(a[0]); i<= floor(b[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+
             xHigh = c[1] + ((b[1] - c[1])/(b[0] - c[0]))*(i-c[0]); //lower bound
             xLow = a[1] + ((b[1] - a[1])/(b[0] - a[0]))*(i-a[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
@@ -76,9 +89,19 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
     else if(a[0] == b[0])
     {
         for(i = ceil(a[0]); i<= floor(c[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+
             xHigh = a[1] + ((c[1] - a[1])/(c[0] - a[0]))*(i-a[0]); //lower bound
             xLow = b[1] + ((c[1] - b[1])/(c[0] - b[0]))*(i-b[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+    
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
@@ -88,9 +111,19 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
     else if(c[0]==b[0]){
 
         for(i = ceil(a[0]); i<= floor(b[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+
             xHigh = a[1] + ((c[1] - a[1])/(c[0] - a[0]))*(i-a[0]); //lower bound
             xLow = a[1] + ((b[1] - a[1])/(b[0] - a[0]))*(i-a[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
@@ -99,18 +132,38 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
 
     else if(b[0]<c[0]){
         for(i = ceil(a[0]); i<= floor(b[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+
             xHigh = a[1] + ((c[1] - a[1])/(c[0] - a[0]))*(i-a[0]); //lower bound
             xLow = a[1] + ((b[1] - a[1])/(b[0] - a[0]))*(i-a[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
         }
 
         for(i = ceil(b[0]); i<= floor(c[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+
             xHigh = a[1] + ((c[1] - a[1])/(c[0] - a[0]))*(i-a[0]); //lower bound
             xLow = b[1] + ((c[1] - b[1])/(c[0] - b[0]))*(i-b[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+        
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
@@ -119,18 +172,36 @@ void triangleALeft(renRenderer *ren, double unif[], texTexture *tex[],
 
     else if(c[0]<b[0]){
         for(i = ceil(a[0]); i<= floor(c[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
             xHigh = a[1] + ((c[1] - a[1])/(c[0] - a[0]))*(i-a[0]); //lower bound
             xLow = a[1] + ((b[1] - a[1])/(b[0] - a[0]))*(i-a[0]); //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }
         }
 
         for(i = ceil(c[0]); i<= floor(b[0]); i++){
+            if(i > width)
+                break;
+            else if(i <0) 
+                continue;
+        
             xHigh = c[1] + ((b[1] - c[1])/(b[0] - c[0]))*(i-c[0]); //lower bound
             xLow = a[1] + ((b[1] - a[1])/(b[0] - a[0]))*(i-a[0]);; //upper bound
             for(j = ceil(xLow); j<= floor(xHigh); j++){
+                if(j > height)
+                    break;
+                else if(j <0) 
+                    continue;
+        
                 double x[2] = {i, j};
                 interpolate(a,b,c,x,tex,ren,unif);
             }

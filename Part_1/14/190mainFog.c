@@ -130,7 +130,7 @@ double camera[2] = {M_PI/2,0.0};
 double zoom = 10;
 double viewing[3] = {0.0, 1.0, 0.0};
 double ambience = 0.6;
-double shine = 4.0;
+double shine = 25.0;
 
 /* Sets rgb, based on the other parameters, which are unaltered. attr is an 
 interpolated attribute vector. can also add effects to the rgbz depending on what
@@ -160,10 +160,10 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     rgbz[0] = tex[0]->sample[renTEXR] * totalInt * unif[renUNIFLIGHTR];
     rgbz[1] = tex[0]->sample[renTEXG] * totalInt * unif[renUNIFLIGHTG];
     rgbz[2] = tex[0]->sample[renTEXB] * totalInt * unif[renUNIFLIGHTB];
-    rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+    rgbz[3] = vary[renVARYZ];
 
-    //fog = ( (z+1)/z ) * c + ( 1 - (z+1)/z ) * g
-    double z = (rgbz[3] + 1) / z;
+    //fog = ( (z+1)/2 ) * c + ( 1 - (z+1)/2 ) * g
+    double z = (rgbz[3] + 1) / 2;
 
     double zg[3];
     vecScale(3,(1-z),&unif[renUNIFFOGR],zg);
@@ -175,7 +175,6 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     vecAdd(3,zc,zg,fog);
 
     vecCopy(3,fog,rgbz);
-
 }
 
 /* Writes the vary vector, based on the other parameters. */
@@ -328,12 +327,7 @@ void handleKeyUp(int key, int shiftIsDown, int controlIsDown, int altOptionIsDow
     } 
 
     else if (key == GLFW_KEY_ZOOM_IN) {
-        if (zoom - 5.0 < 5.0) {
-            return;
-        } 
-        else{
             zoom = zoom - 1.0;
-        }
     }
 
     else if (key == GLFW_KEY_LIGHT_LEFT){
