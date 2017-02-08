@@ -156,24 +156,26 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     //ambient lighting
     double totalInt = fmax(diffInt, unif[renUNIFAMBIENCE]) + 2 * specInt;
 
-    //fog = ( (z+1)/z ) * c + ( 1 - (z+1)/z ) * g
-    double z = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
-    z = (z+1)/z;
-
-    double zg[3];
-    vecScale(3,(1-z),&unif[renUNIFFOGR],zg);
-
-    double zc[3];
-    vecScale(3,z,&unif[renUNIFWORLDCAMX],zc);
-    
-    double fog[3];
-    vecAdd(3,zc,zg,fog);
-
     //final color
     rgbz[0] = tex[0]->sample[renTEXR] * totalInt * unif[renUNIFLIGHTR] * fog[0];
     rgbz[1] = tex[0]->sample[renTEXG] * totalInt * unif[renUNIFLIGHTG] * fog[1];
     rgbz[2] = tex[0]->sample[renTEXB] * totalInt * unif[renUNIFLIGHTB] * fog[2];
     rgbz[3] = depthGetZ(ren->depth, vary[renVARYX], vary[renVARYY]);
+
+    //fog = ( (z+1)/z ) * c + ( 1 - (z+1)/z ) * g
+    double z = (rgbz[3] + 1) / 2;
+
+    double zg[3];
+    vecScale(3,(1-z),&unif[renUNIFFOGR],zg);
+
+    double zc[3];
+    vecScale(3,rgbz,zc);
+    
+    double fog[3];
+    vecAdd(3,zc,zg,fog);
+
+    vecCopy(3,fog,rgbz);
+
 }
 
 /* Writes the vary vector, based on the other parameters. */
