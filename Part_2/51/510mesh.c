@@ -122,7 +122,7 @@ void meshGLRender(meshGLMesh *meshGL, GLuint attrNum, GLuint attrDims[],
 	application, we might switch among several shaders rapidly.) Connect our 
 	attribute array to the attributes in the vertex shader. */
 
-	GLint offset_num = 0;
+	GLint offset = 0;
 
 	for (GLuint i = 0; i < attrNum; i++) {
 		GLuint positionLoc = attrDims[i];
@@ -130,9 +130,10 @@ void meshGLRender(meshGLMesh *meshGL, GLuint attrNum, GLuint attrDims[],
 
 		glBindBuffer(GL_ARRAY_BUFFER, meshGL->buffers[0]);
 		glVertexAttribPointer(attrLocs[i], positionLoc, GL_DOUBLE, GL_FALSE,
-			positionLoc * sizeof(GLdouble), BUFFER_OFFSET(offset_num * sizeof(GLdouble)));
+								meshGL->attrDim * sizeof(GLdouble),
+								BUFFER_OFFSET(offset * sizeof(GLdouble)));
 
-		offset_num = offset_num + positionLoc;
+		offset = offset + positionLoc;
 	}
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshGL->buffers[1]);
@@ -147,8 +148,6 @@ void meshGLRender(meshGLMesh *meshGL, GLuint attrNum, GLuint attrDims[],
 void meshGLDestroy(meshGLMesh *meshGL) {
     glDeleteBuffers(2, meshGL->buffers);
 }
-
-
 
 /*** Convenience initializers: 2D ***/
 
