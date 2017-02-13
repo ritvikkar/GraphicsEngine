@@ -126,20 +126,23 @@ void camSetFrustum(camCamera *cam, GLuint projType, GLdouble fovy,
 loads that location with the camera's inverse isometry and projection --- that 
 is, P C^-1, in the notation of our software graphics engine. */
 void camRender(camCamera *cam, GLint viewingLoc) {
+	GLdouble camInv[4][4],proj[4][4],projCamInv[4][4];
 	GLfloat viewing[4][4];
-	GLdouble camInv[4][4], proj[4][4], projCamInv[4][4];
 
-    //vec3Spherical(1.0, cam -> phi,cam -> theta,axis);
-	GLdouble axis[3] = {1.0, 1.0, 1.0};
-	vecUnit(3, axis, axis);
-	cam -> translation[2] = 4.0;
-	
-	mat33AngleAxisRotation(0.0, axis, cam -> rotation);
-	mat44InverseIsometry(cam -> rotation, cam -> translation, camInv);
-	mat44Orthographic(-2.0, 2.0, -2.0, 2.0, -6.0, -2.0, proj);
-	mat444Multiply(proj, camInv, projCamInv);
+	mat44InverseIsometry(cam->rotation, cam->translation, camInv);
+
+	if (cam->projectionType == camORTHOGRAPHIC) {
+	    mat44Orthographic(cam->projection[camPROJL],cam->projection[camPROJR],cam->projection[camPROJB],
+	                    cam->projection[camPROJT],cam->projection[camPROJF],cam->projection[camPROJN],proj);
+	    mat444Multiply(proj,camInv,projCamInv);
+  	}
+  	else if (cam->projectionType == camPERSPECTIVE) {
+	    mat44Perspective(cam->projection[camPROJL],cam->projection[camPROJR],cam->projection[camPROJB],
+	                    cam->projection[camPROJT],cam->projection[camPROJF],cam->projection[camPROJN],proj);
+	    mat444Multiply(proj,camInv,projCamInv);
+  	}
+
 	mat44OpenGL(projCamInv, viewing);
-
 	glUniformMatrix4fv(viewingLoc, 1, GL_FALSE, (GLfloat *)viewing);
 }
 

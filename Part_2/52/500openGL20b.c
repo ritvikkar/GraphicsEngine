@@ -1,3 +1,5 @@
+
+
 /* On macOS, compile with...
     clang 500openGL20b.c -lglfw -framework OpenGL
 */
@@ -120,7 +122,6 @@ void render(void) {
 	glUniformMatrix4fv(viewingLoc, 1, GL_FALSE, (GLfloat *)viewing);
 	
 	/* The rest of the process is just as in the preceding tutorial. */
-	
 	glEnableVertexAttribArray(positionLoc);
 	glEnableVertexAttribArray(colorLoc);
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
