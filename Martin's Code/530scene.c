@@ -9,7 +9,7 @@ typedef struct sceneNode sceneNode;
 struct sceneNode {
     GLdouble rotation[3][3];
     GLdouble translation[3];
-    GLuint unifDim;
+    GLuint unifDims[i];
     GLdouble *unif;
     meshGLMesh *meshGL;
     sceneNode *firstChild, *nextSibling;
@@ -18,14 +18,14 @@ struct sceneNode {
 /* Initializes a sceneNode struct. The translation and rotation are initialized
  to trivial values. The user must remember to call sceneDestroy or 
 sceneDestroyRecursively when finished. Returns 0 if no error occurred. */
-int sceneInitialize(sceneNode *node, GLuint unifDim, meshGLMesh *mesh, 
+int sceneInitialize(sceneNode *node, GLuint unifDims[i], meshGLMesh *mesh, 
         sceneNode *firstChild, sceneNode *nextSibling) {
-    node->unif = (GLdouble *)malloc(unifDim * sizeof(GLdouble));
+    node->unif = (GLdouble *)malloc(unifDims[i] * sizeof(GLdouble));
     if (node->unif == NULL)
         return 1;
     mat33Identity(node->rotation);
     vecSet(3, node->translation, 0.0, 0.0, 0.0);
-    node->unifDim = unifDim;
+    node->unifDims[i] = unifDims[i];
     node->meshGL = mesh;
     node->firstChild = firstChild;
     node->nextSibling = nextSibling;
@@ -44,9 +44,9 @@ void sceneDestroy(sceneNode *node) {
 
 /*** Accessors ***/
 
-/* Copies the unifDim-dimensional vector from unif into the node. */
+/* Copies the unifDims[i]-dimensional vector from unif into the node. */
 void sceneSetUniform(sceneNode *node, double unif[]) {
-    vecCopy(node->unifDim, unif, node->unif);
+    vecCopy(node->unifDims[i], unif, node->unif);
 }
 
 /* Sets one uniform in the node, based on its index in the unif array. */
@@ -140,35 +140,47 @@ void vecOpenGL(int dim, GLdouble v[], GLfloat openGL[]) {
         openGL[i] = v[i];
 }
 
-/*
-    glUniform4fv(GLint location, GLsizei count, const GL_FLOAT values[4]);
-    glUniform3fv(GLint location, GLsizei count, const GL_FLOAT values[3]);
-    glUniform2fv(GLint location, GLsizei count, const GL_FLOAT values[2]);
-    glUniform1fv(GLint location, GLsizei count, const GL_FLOAT values[1]);
-*/
-
 /* Renders the node, its younger siblings, and their descendants. parent is the 
 modeling matrix at the parent of the node. If the node has no parent, then this 
 matrix is the 4x4 identity matrix. Loads the modeling transformation into 
 modelingLoc. The attribute information exists to be passed to meshGLRender. The 
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
-        GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
+        GLuint unifNum, GLuint unifDims[i]s[], GLint unifLocs[], 
         GLuint attrNum, GLuint attrDims[], GLint attrLocs[]) {
+
+    if (node == NULL) { return; }
+
     /* Set the uniform modeling matrix. */
-    /* !! */
+    double isometry[4][4];
+    mat44Isometry(node->rotation, node->translation, isometry);
+
+    double model[4][4];
+    mat444Multiply(parent, isometry, model);
+
+    GLfloat modeling[4][4];
+    mat44OpenGL(model, modeling);
+    glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)modeling);
+
     /* Set the other uniforms. The casting from double to float is annoying. */
-    /* !! */
+    int i;
+    for (i = 0; i < unifNum; i += 1) {
+        if (unifDims[i] == 1)
+            glUniform1fv(unifLocs[i], 1, (GLfloat *)(node->unif));
+        else if (unifDims[i] == 2)
+            glUniform2fv(unifLocs[i], 1, (GLfloat *)(node->unif));
+        else if (unifDims[i] == 3)
+            glUniform3fv(unifLocs[i], 1, (GLfloat *)(node->unif));
+        else if (unifDims[i] == 4)
+            glUniform4fv(unifLocs[i], 1, (GLfloat *)(node->unif));
+    }
+    
     /* Render the mesh, the children, and the younger siblings. */
-    /* !! */
+    meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
+    sceneRender(node->nextSibling, parent, modelingLoc, 
+        unifNum, unifDims[i]s, unifLocs, 
+        attrNum, attrDims, attrLocs);
+    sceneRender(node->firstChild, model, modelingLoc, 
+        unifNum, unifDims[i]s, unifLocs, 
+        attrNum, attrDims, attrLocs);
 }
-
-/*
-    GLdouble rotation[3][3];
-    GLdouble translation[3];
-    GLuint unifDim;
-    GLdouble *unif;
-    meshGLMesh *meshGL;
-    sceneNode *firstChild, *nextSibling;
-*/
-

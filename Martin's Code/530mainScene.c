@@ -86,6 +86,7 @@ int initializeScene(void) {
 	if (sceneInitialize(&childNode, 2, &childMesh, NULL, NULL) != 0)
 		return 5;
 	if (sceneInitialize(&rootNode, 2, &rootMesh, &childNode, &siblingNode) != 0)
+    // if (sceneInitialize(&rootNode, 2, &rootMesh, NULL, NULL) != 0)
 		return 6;
 	/* Customize the uniforms. */
 	GLdouble trans[3] = {1.0, 0.0, 0.0};
