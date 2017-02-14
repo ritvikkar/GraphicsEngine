@@ -157,31 +157,32 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 
 	else{
 		/* Set the uniform modeling matrix. */
-		/* !! */	
+		/* !! */
 		GLdouble isometry[4][4];
 		mat44Isometry(node->rotation, node->translation, isometry);
 		GLdouble renIsometry[4][4];
 		mat444Multiply(parent, isometry, renIsometry);
 		GLfloat projRenIsometry[4][4];
 		mat44OpenGL(renIsometry, projRenIsometry);
-		glUniform4fv(modelingLoc, 1, (GLfloat *)projRenIsometry);
+		glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)projRenIsometry);
 
 		/* Set the other uniforms. The casting from double to float is annoying. */
 		/* !! */
-
-		for (GLuint i = 0; i < unifNum; i++) {
-			if (unifDim == 1)
+		int i;
+		for (i = 0; i < unifNum; i++) {
+			//GLuint unifDim = unifDims[i];
+			if (unifDims[i] == 1)
 				glUniform1fv(unifLocs[i], 1, (GLfloat *)node->unif);
-			else if (unifDim == 2)
+			else if (unifDims[i] == 2)
 				glUniform2fv(unifLocs[i], 1, (GLfloat *)node->unif);
-			else if (unifDim == 3)
+			else if (unifDims[i] == 3)
 				glUniform3fv(unifLocs[i], 1, (GLfloat *)node->unif);
-			else if (unifDim == 4) 
+			else if (unifDims[i] == 4) 
 				glUniform4fv(unifLocs[i], 1, (GLfloat *)node->unif);
 		}
 
 		/* Render the mesh, the children, and the younger siblings. */
-		/* !! */	
+		/* !! */
 		meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
 		if (node->firstChild != NULL) {
 			sceneRender(node->firstChild, renIsometry, modelingLoc, 

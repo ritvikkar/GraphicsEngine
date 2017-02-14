@@ -19,7 +19,7 @@
 #include "510mesh.c"
 #include "520matrix.c"
 #include "520camera.c"
-#include "530scene.c"
+#include "531scene.c"
 
 GLdouble alpha = 0.0;
 GLuint program;
