@@ -170,24 +170,14 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 		/* !! */
 
 		for (GLuint i = 0; i < unifNum; i++) {
-			GLuint unifDim = unifDims[i];
-			if (unifDim == 1) {
-				GLfloat values[1];
-				vecOpenGL(1, (GLdouble *)unifLocs[i], values);
-				glUniform1fv(unifLocs[i], 1, (GLfloat *)values);
-			} else if (unifDim == 2) {
-				GLfloat values[2];
-				vecOpenGL(2, (GLdouble *)unifLocs[i], values);
-				glUniform2fv(unifLocs[i], 1, (GLfloat *)values);
-			} else if (unifDim == 3) {
-				GLfloat values[3];
-				vecOpenGL(3, (GLdouble *)unifLocs[i], values);
-				glUniform3fv(unifLocs[i], 1, (GLfloat *)values);
-			} else if (unifDim == 4) {
-				GLfloat values[4];
-				vecOpenGL(4, (GLdouble *)unifLocs[i], values);
-				glUniform4fv(unifLocs[i], 1, (GLfloat *)values);
-			}
+			if (unifDim == 1)
+				glUniform1fv(unifLocs[i], 1, (GLfloat *)node->unif);
+			else if (unifDim == 2)
+				glUniform2fv(unifLocs[i], 1, (GLfloat *)node->unif);
+			else if (unifDim == 3)
+				glUniform3fv(unifLocs[i], 1, (GLfloat *)node->unif);
+			else if (unifDim == 4) 
+				glUniform4fv(unifLocs[i], 1, (GLfloat *)node->unif);
 		}
 
 		/* Render the mesh, the children, and the younger siblings. */
