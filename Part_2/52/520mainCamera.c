@@ -119,7 +119,7 @@ void render(void) {
 	double trans[3] = {0.0, 0.0, 0.0}, axis[3] = {1.0, 1.0, 1.0};
 	double rot[3][3], model[4][4];
 	vecUnit(3, axis, axis);
-	alpha += 0.01;
+	//alpha += 0.01;
 	mat33AngleAxisRotation(alpha, axis, rot);
 	mat44Isometry(rot, trans, model);
 	mat44OpenGL(model, modeling);

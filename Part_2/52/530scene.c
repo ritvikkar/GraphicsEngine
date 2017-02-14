@@ -136,8 +136,15 @@ void sceneRemoveChild(sceneNode *node, sceneNode *child) {
 /*** OpenGL ***/
 
 void vecOpenGL(int dim, GLdouble v[], GLfloat openGL[]) {
+	printf("got into vecOpenGL\n");
 	for (int i = 0; i < dim; i += 1)
+	{
+		printf("v[%d] %f\n", i, v[i]);
+		fflush(stdout);
+		printf("here\n");
 		openGL[i] = v[i];
+		printf("looping\n");
+	}
 }
 
 /* Renders the node, its younger siblings, and their descendants. parent is the 
@@ -159,24 +166,29 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 	glUniform4fv(modelingLoc, 1, (GLfloat *)projRenIsometry);
 
 	/* Set the other uniforms. The casting from double to float is annoying. */
-	/* !! */	
+	/* !! */
+
 	for (GLuint i = 0; i < unifNum; i++) {
 		GLuint unifDim = unifDims[i];
+		printf("unifDim %d\n", unifDim);
 		if (unifDim == 1) {
 			GLfloat values[1];
-			vecOpenGL(1, (GLint *)unifLocs[i], values);
+			vecOpenGL(1, (GLdouble *)unifLocs[i], values);
 			glUniform1fv(unifLocs[i], 1, (GLfloat *)values);
 		} else if (unifDim == 2) {
 			GLfloat values[2];
-			vecOpenGL(2, (GLint *)unifLocs[i], values);
+			printf("made values\n");
+			printf("%d\n", unifLocs[i]);
+			vecOpenGL(2, (GLdouble *)unifLocs[i], values);
+			printf("got through vecOpenGL\n");
 			glUniform2fv(unifLocs[i], 1, (GLfloat *)values);
 		} else if (unifDim == 3) {
 			GLfloat values[3];
-			vecOpenGL(3, (GLint*)unifLocs[i], values);
+			vecOpenGL(3, (GLdouble *)unifLocs[i], values);
 			glUniform3fv(unifLocs[i], 1, (GLfloat *)values);
 		} else if (unifDim == 4) {
 			GLfloat values[4];
-			vecOpenGL(4, (GLint *)unifLocs[i], values);
+			vecOpenGL(4, (GLdouble *)unifLocs[i], values);
 			glUniform4fv(unifLocs[i], 1, (GLfloat *)values);
 		}
 	}
