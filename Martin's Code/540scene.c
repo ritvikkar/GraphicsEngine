@@ -183,18 +183,15 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
         else if (unifDims[i] == 4)
             glUniform4fv(unifLocs[i], 1, (GLfloat *)(node->unif));
     }
-
     
     /* Render the mesh, the children, and the younger siblings. */
-    // printf("render\n");
-    texRender(*node->tex, GL_TEXTURE0, 0, textureLocs[0]);
+    texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
+    texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
 
-
-    // printf("mesh render\n");
     meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
 
-    // printf("texUnrender\n");
     texUnrender(*node->tex, GL_TEXTURE0);
+    texUnrender(*node->tex, GL_TEXTURE1);
 
     sceneRender(node->nextSibling, parent, modelingLoc, 
         unifNum, unifDims, unifLocs, 

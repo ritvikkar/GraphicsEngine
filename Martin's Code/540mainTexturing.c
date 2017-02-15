@@ -2,7 +2,7 @@
 
 
 /* On macOS, compile with...
-    clang 530mainScene.c -lglfw -framework OpenGL
+    clang -o texture 540mainTexture.c -lglfw -framework OpenGL
 */
 
 #include <stdio.h>
@@ -28,13 +28,12 @@ GLuint program;
 GLint attrLocs[3];
 GLint viewingLoc, modelingLoc;
 GLint unifLocs[1];
-GLuint textureA, textureB, textureC;
-texTexture texA, texB, texC;
-GLint texCoordsLoc[3], textureLoc[3];
+GLint texCoordsLoc, textureLoc[2];
 camCamera cam;
-/* Allocate three meshes and three scene graph nodes. */
+/* Allocate three meshes, scene graph nodes, and textures. */
 meshGLMesh rootMesh, childMesh, siblingMesh;
 sceneNode rootNode, childNode, siblingNode;
+texTexture texA, texB, texC;
 
 void handleError(int error, const char *description) {
     fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -69,37 +68,6 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
     }
 }
 
-// void initializeMesh(void) {
-//     /* Append two texture coordinates to each vertex from 500openGL20b.c. 
-//     Notice that attrDim, above, is now 8. */
-//     GLdouble attributes[vertNum * attrDim] = {
-//         1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.5, 
-//         -1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.5, 0.5, 
-//         0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.25, 0.5, 
-//         0.0, -1.0, 0.0, 0.0, 1.0, 1.0, 0.75, 0.5, 
-//         0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 
-//         0.0, 0.0, -1.0, 1.0, 0.0, 1.0, 0.0, 0.0};
-//     /* The rest of this function is the same as in 500openGL20b.c. */
-//     GLuint triangles[triNum * 3] = {
-//         0, 2, 4, 
-//         2, 1, 4, 
-//         1, 3, 4, 
-//         3, 0, 4, 
-//         2, 0, 5, 
-//         1, 2, 5, 
-//         3, 1, 5, 
-//         0, 3, 5};
-//     glGenBuffers(2, buffers);
-    
-//     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-//     glBufferData(GL_ARRAY_BUFFER, vertNum * attrDim * sizeof(GLdouble),
-//         (GLvoid *)attributes, GL_STATIC_DRAW);
-
-//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, triNum * 3 * sizeof(GLuint),
-//         (GLvoid *)triangles, GL_STATIC_DRAW);
-// }
-
 /* Returns 0 on success, non-zero on failure. Warning: If initialization fails 
 midway through, then does not properly deallocate all resources. But that's 
 okay, because the program terminates almost immediately after this function 
@@ -124,8 +92,9 @@ int initializeScene(void) {
         return 4;
     if (sceneInitialize(&childNode, 2, 2, &childMesh, NULL, NULL) != 0)
         return 5;
+    if (sceneInitialize(&rootNode, 2, 2, &rootMesh, NULL, &siblingNode) != 0)
     // if (sceneInitialize(&rootNode, 2, 2, &rootMesh, &childNode, &siblingNode) != 0)
-    if (sceneInitialize(&rootNode, 2, 2, &rootMesh, NULL, NULL) != 0)
+    // if (sceneInitialize(&rootNode, 2, 2, &rootMesh, NULL, NULL) != 0)
         return 6;
     /* Customize the uniforms. */
     GLdouble trans[3] = {1.0, 0.0, 0.0};
@@ -179,12 +148,14 @@ int initializeShaderProgram(void) {
             gl_FragColor = rgba;\
         }"; */
     GLchar fragmentCode[] = "\
-        uniform sampler2D texture;\
+        uniform sampler2D texture1;\
+        uniform sampler2D texture2;\
         varying vec4 rgba;\
         varying vec2 st;\
         void main() {\
-            gl_FragColor = rgba * texture2D(texture, st);\
+            gl_FragColor = (texture2D(texture1, st) + texture2D(texture2, st)) * 0.5;\
         }";
+        // gl_FragColor = rgba * texture2D(texture, st);
     program = makeProgram(vertexCode, fragmentCode);
     if (program != 0) {
         glUseProgram(program);
@@ -195,50 +166,12 @@ int initializeShaderProgram(void) {
         viewingLoc = glGetUniformLocation(program, "viewing");
         modelingLoc = glGetUniformLocation(program, "modeling");
         unifLocs[0] = glGetUniformLocation(program, "spice");
-        texCoordsLoc[0] = glGetAttribLocation(program, "texCoords");
-        textureLoc[0] = glGetUniformLocation(program, "texture");
+        texCoordsLoc = glGetAttribLocation(program, "texCoords");
+        textureLoc[0] = glGetUniformLocation(program, "texture1");
+        textureLoc[1] = glGetUniformLocation(program, "texture2");
     }
     return (program == 0);
 }
-
-// /* Loads the given image file into an OpenGL texture. The width and height of 
-// the image must be powers of 2. Returns 0 on success, non-zero on failure. On 
-// success, the user must later deallocate the texture using a call like 
-// glDeleteTextures(1, texture). */
-// int initializeTexture(GLuint *texture, char *path) {
-//     /* Use STB Image to load the texture data from the file. */
-//     int width, height, texelDim;
-//     unsigned char *rawData;
-//     rawData = stbi_load(path, &width, &height, &texelDim, 0);
-//     if (rawData == NULL) {
-//         fprintf(stderr, "initializeTexture: failed to load %s\n", path);
-//         fprintf(stderr, "with STB Image reason: %s.\n", stbi_failure_reason());
-//         return 1;
-//     }
-//     /* Right now we support only 3-channel images. */
-//     if (texelDim != 3) {
-//         fprintf(stderr, "initializeTexture: %d != 3 channels.\n", texelDim);
-//         return 2;
-//     }
-//     /* Load the data into OpenGL. The calls to glTexParameteri demonstrate how 
-//     you might set border and filtering behavior. */
-//     glGenTextures(1, texture);
-//     glBindTexture(GL_TEXTURE_2D, *texture);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, 
-//         GL_UNSIGNED_BYTE, rawData);
-//     stbi_image_free(rawData);
-//     if (glGetError() != GL_NO_ERROR) {
-//         fprintf(stderr, "initializeTexture: OpenGL error.\n");
-//         glDeleteTextures(1, texture);
-//         return 3;
-//     }
-//     glBindTexture(GL_TEXTURE_2D, 0);
-//     return 0;
-// }
 
 int initializeTex() {
     /* A 'texture unit' is a piece of machinery inside the GPU that performs 
@@ -247,30 +180,27 @@ int initializeTex() {
     function selects which texture unit is affected by subsequent OpenGL calls. 
     In this tutorial, we use only texture unit 0, so we activate it here, once 
     and for all. */
-    // glEnable(GL_TEXTURE_2D);
 
-    // glActiveTexture(GL_TEXTURE0);
-    // if (initializeTexture(&textureA, "rainbow.jpg") != 0)
-    //     return 1;
 
     if (texInitializeFile(&texA, "rainbow.jpg", GL_LINEAR, GL_LINEAR, 
             GL_REPEAT, GL_REPEAT) != 0)
         return 1;
 
 
+    if (texInitializeFile(&texB, "jupiter.jpg", GL_LINEAR, GL_LINEAR, 
+            GL_REPEAT, GL_REPEAT) != 0)
+        return 2;
 
-    // int texInitializeFile(texTexture *tex, char *path, GLint minification, 
-        //GLint magnification, GLint leftRight, GLint bottomTop) {
-    // glActiveTexture(GL_TEXTURE1);
-    // if (initializeTexture(&textureB, "jupiter.jpg") != 0)
-    //     return 2;
+    if (texInitializeFile(&texC, "puppy.jpg", GL_LINEAR, GL_LINEAR, 
+            GL_REPEAT, GL_REPEAT) != 0)
+        return 3;
 
-    // glActiveTexture(GL_TEXTURE2);
-    // if (initializeTexture(&textureC, "puppy.jpg") != 0)
-    //     return 3;
 
     sceneSetOneTexture(&rootNode, 0, &texA);
-    // sceneSetOneTexture(&rootNode, 1, &texB);
+    sceneSetOneTexture(&rootNode, 1, &texB);
+
+    sceneSetOneTexture(&siblingNode, 0, &texA);
+    sceneSetOneTexture(&siblingNode, 1, &texC);
 
     return 0;
 }
@@ -282,11 +212,11 @@ void render(void) {
     camRender(&cam, viewingLoc);
     /* This animation code is different from that in 520mainCamera.c. */
     GLdouble rot[3][3], identity[4][4], axis[3] = {1.0, 1.0, 1.0};
-    // vecUnit(3, axis, axis);
-    // alpha += 0.01;
-    // mat33AngleAxisRotation(alpha, axis, rot);
-    // sceneSetRotation(&rootNode, rot);
-    // sceneSetOneUniform(&rootNode, 0, 0.5 + 0.5 * sin(alpha * 7.0));
+    vecUnit(3, axis, axis);
+    alpha += 0.01;
+    mat33AngleAxisRotation(alpha, axis, rot);
+    sceneSetRotation(&rootNode, rot);
+    sceneSetOneUniform(&rootNode, 0, 0.5 + 0.5 * sin(alpha * 7.0));
     /* This rendering code is different from that in 520mainCamera.c. */
     mat44Identity(identity);
     GLuint unifDims[1] = {2};
@@ -325,7 +255,6 @@ int main(void) {
     function selects which texture unit is affected by subsequent OpenGL calls. 
     In this tutorial, we use only texture unit 0, so we activate it here, once 
     and for all. */
-    // initializeMesh();
     if (initializeTex() != 0) {
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -347,5 +276,3 @@ int main(void) {
     glfwTerminate();
     return 0;
 }
-
-
