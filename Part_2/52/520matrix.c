@@ -135,12 +135,12 @@ void mat33AngleAxisRotation(GLdouble theta, GLdouble axis[3], GLdouble rot[3][3]
 
     //identity matrix
     GLdouble I[3][3] = {{1.0,0.0,0.0},
-                      {0.0,1.0,0.0},
-                      {0.0,0.0,1.0}};
+                        {0.0,1.0,0.0},
+                        {0.0,0.0,1.0}};
     
     int i,j;
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
             rot[i][j] = I[i][j] + (sin(theta)*U[i][j]) + ((1.0 - cos(theta))*(UU[i][j]));
         }
     }
