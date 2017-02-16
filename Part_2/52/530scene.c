@@ -163,7 +163,7 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 		mat444Multiply(parent, isometry, renIsometry);
 		GLfloat projRenIsometry[4][4];
 		mat44OpenGL(renIsometry, projRenIsometry);
-		glUniformMatrix4fv(modelingLoc, 1, (GLfloat *)projRenIsometry);
+    	glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)projRenIsometry);
 
 		/* Set the other uniforms. The casting from double to float is annoying. */
 		/* !! */

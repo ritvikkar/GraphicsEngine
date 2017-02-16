@@ -17,22 +17,21 @@ struct sceneNode {
 	meshGLMesh *meshGL;
 	sceneNode *firstChild, *nextSibling;
 	texTexture **tex;
-	GLuint texNum;
+	GLuint texNum;	
 };
 
 /* Initializes a sceneNode struct. The translation and rotation are initialized to trivial values. The user must remember to call sceneDestroy or 
 sceneDestroyRecursively when finished. Returns 0 if no error occurred. */
-int sceneInitialize(sceneNode *node, GLuint unifDim, GLuint texNum, 
-        			meshGLMesh *mesh, sceneNode *firstChild, 
-        			sceneNode *nextSibling) {
-	node->unif = (GLdouble *)malloc(unifDim * sizeof(GLdouble) + 
-        texNum * sizeof(texTexture *));	
-    if (node->unif == NULL)
-        return 1;
-    node->tex = (texTexture **)&(node->unif[unifDim]);
-    mat33Identity(node->rotation);
-
+int sceneInitialize(sceneNode *node, GLuint unifDim, meshGLMesh *mesh, 
+						GLuint texNum, sceneNode *firstChild, sceneNode *nextSibling) {
+	node->unif = (GLdouble *)malloc(unifDim * sizeof(GLdouble) + texNum * sizeof(texTexture *));
+	
+	if (node->unif == NULL)
+		return 1;
+	node->tex = (texTexture **)&(node->unif[unifDim]);
+	mat33Identity(node->rotation);
 	vecSet(3, node->translation, 0.0, 0.0, 0.0);
+	node->texNum = texNum;	
 	node->unifDim = unifDim;
 	node->meshGL = mesh;
 	node->firstChild = firstChild;
@@ -59,6 +58,16 @@ void sceneSetUniform(sceneNode *node, double unif[]) {
 /* Sets one uniform in the node, based on its index in the unif array. */
 void sceneSetOneUniform(sceneNode *node, int index, double unif) {
 	node->unif[index] = unif;
+}
+
+/* Copies texture from node->tex into texList. */
+void sceneSetTexture(sceneNode *node, texTexture texList[]) {
+  node->tex = &texList;
+}
+
+/* Sets one texture in the node, based on its index in the tex array. */
+void sceneSetOneTexture(sceneNode *node, int index, texTexture *tex) {
+  node->tex[index] = tex;
 }
 
 /* Calls sceneDestroy recursively on the node's descendants and younger 
@@ -138,16 +147,6 @@ void sceneRemoveChild(sceneNode *node, sceneNode *child) {
 		sceneRemoveSibling(node->firstChild, child);
 }
 
-/* Copies the tex Dim-dimensional vector from tex into the node. */
-void sceneSetTexture(sceneNode *node, texTexture texList[]) {
-  node->tex = &texList;
-}
-
-/* Sets one texture in the node, based on its index in the tex array. */
-void sceneSetOneTexture(sceneNode *node, int index, texTexture *tex) {
-  node->tex[index] = tex;
-}
-
 /*** OpenGL ***/
 
 /* Renders the node, its younger siblings, and their descendants. parent is the 
@@ -173,12 +172,13 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 		mat444Multiply(parent, isometry, renIsometry);
 		GLfloat projRenIsometry[4][4];
 		mat44OpenGL(renIsometry, projRenIsometry);
-		glUniformMatrix4fv(modelingLoc, 1, (GLfloat *)projRenIsometry);
+    	glUniformMatrix4fv(modelingLoc, 1, GL_FALSE, (GLfloat *)projRenIsometry);
 
 		/* Set the other uniforms. The casting from double to float is annoying. */
 		/* !! */
 		GLuint offset = 0;
-		for (GLuint i = 0; i < unifNum; i++) {
+		GLuint i;
+		for (i = 0; i < unifNum; i++) {
 			GLuint unifDim = unifDims[i];
 			if (unifDim == 1) {
 				GLfloat values[1];
@@ -199,32 +199,130 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 			}
 			offset = offset + unifDim;
 		}
-		
-		/* Update that function to correctly activate and deactivate textures, 
-		   using the first node->texNum texture units */
-		/* !! */	
-		int i;
-		for (i = 0; i < node->texNum; i++) {
-			glBindTexture(GL_TEXTURE_2D, node->tex[i]->openGL);
-			glUniform1i(textureLocs[i], i);
+
+		/* Render the mesh, the children, and the younger siblings. */
+		/* !! */
+		if(node->texNum == 1){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+		}
+		else if(node->texNum == 2){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+		}
+		else if(node->texNum == 3){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+		}
+		else if(node->texNum == 4){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+			texRender(node->tex[3],GL_TEXTURE3,3,textureLocs[3]);
+		}
+		else if(node->texNum == 5){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+			texRender(node->tex[3],GL_TEXTURE3,3,textureLocs[3]);
+			texRender(node->tex[4],GL_TEXTURE4,4,textureLocs[4]);
+		}
+		else if(node->texNum == 6){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+			texRender(node->tex[3],GL_TEXTURE3,3,textureLocs[3]);
+			texRender(node->tex[4],GL_TEXTURE4,4,textureLocs[4]);
+			texRender(node->tex[5],GL_TEXTURE5,5,textureLocs[5]);
+		}
+		else if(node->texNum == 7){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+			texRender(node->tex[3],GL_TEXTURE3,3,textureLocs[3]);
+			texRender(node->tex[4],GL_TEXTURE4,4,textureLocs[4]);
+			texRender(node->tex[5],GL_TEXTURE5,5,textureLocs[5]);
+			texRender(node->tex[6],GL_TEXTURE6,6,textureLocs[6]);
+		}
+		else if(node->texNum == 8){
+			texRender(node->tex[0],GL_TEXTURE0,0,textureLocs[0]);
+			texRender(node->tex[1],GL_TEXTURE1,1,textureLocs[1]);
+			texRender(node->tex[2],GL_TEXTURE2,2,textureLocs[2]);
+			texRender(node->tex[3],GL_TEXTURE3,3,textureLocs[3]);
+			texRender(node->tex[4],GL_TEXTURE4,4,textureLocs[4]);
+			texRender(node->tex[5],GL_TEXTURE5,5,textureLocs[5]);
+			texRender(node->tex[6],GL_TEXTURE6,6,textureLocs[6]);
+			texRender(node->tex[7],GL_TEXTURE7,7,textureLocs[7]);
 		}
 
 		meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
-		glBindTexture(GL_TEXTURE_2D, 0);
 
-		/* Render the mesh, the children, and the younger siblings. */
-		/* !! */	
-		meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
+		if(node->texNum == 1){
+			texUnrender(*node->tex, GL_TEXTURE0);
+
+		}
+		else if(node->texNum == 2){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+		}
+		else if(node->texNum == 3){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+		}
+		else if(node->texNum == 4){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+			texUnrender(*node->tex, GL_TEXTURE3);
+		}
+		else if(node->texNum == 5){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+			texUnrender(*node->tex, GL_TEXTURE3);
+			texUnrender(*node->tex, GL_TEXTURE4);
+		}
+		else if(node->texNum == 6){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+			texUnrender(*node->tex, GL_TEXTURE3);
+			texUnrender(*node->tex, GL_TEXTURE4);
+			texUnrender(*node->tex, GL_TEXTURE5);
+		}
+		else if(node->texNum == 7){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+			texUnrender(*node->tex, GL_TEXTURE3);
+			texUnrender(*node->tex, GL_TEXTURE4);
+			texUnrender(*node->tex, GL_TEXTURE5);
+			texUnrender(*node->tex, GL_TEXTURE6);
+		}
+		else if(node->texNum == 8){
+			texUnrender(*node->tex, GL_TEXTURE0);
+			texUnrender(*node->tex, GL_TEXTURE1);
+			texUnrender(*node->tex, GL_TEXTURE2);
+			texUnrender(*node->tex, GL_TEXTURE3);
+			texUnrender(*node->tex, GL_TEXTURE4);
+			texUnrender(*node->tex, GL_TEXTURE5);
+			texUnrender(*node->tex, GL_TEXTURE6);
+			texUnrender(*node->tex, GL_TEXTURE7);
+		}
+
 		if (node->firstChild != NULL) {
-			sceneRender(node->firstChild, renIsometry, modelingLoc, 
+			sceneRender(node->firstChild, renIsometry, modelingLoc,
 							unifNum, unifDims, unifLocs, 
-							attrNum, attrDims, attrLocs);
+							attrNum, attrDims, attrLocs,
+							textureLocs);
 		}
 
 		if (node->nextSibling != NULL) {
 			sceneRender(node->nextSibling, parent, modelingLoc, 
 							unifNum, unifDims, unifLocs, 
-							attrNum, attrDims, attrLocs);
+							attrNum, attrDims, attrLocs,
+							textureLocs);
 		}
 	}
 }
