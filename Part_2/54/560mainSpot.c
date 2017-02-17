@@ -97,7 +97,7 @@ int initializeScene(void) {
 		return 4;
 	if (sceneInitialize(&childNode, 2, &childMesh, 2, NULL, NULL) != 0)
 		return 5;
-	if (sceneInitialize(&rootNode, 2, &rootMesh, 2, NULL, &siblingNode) != 0)
+	if (sceneInitialize(&rootNode, 2, &rootMesh, 2, &childNode, &siblingNode) != 0)
 		return 6;
 	/* Customize the uniforms. */
 	GLdouble trans[3] = {1.0, 0.0, 0.0};
@@ -150,7 +150,8 @@ int initializeShaderProgram(void) {
 	        st = texCoords;\
 	    }";
 	GLchar fragmentCode[] = "\
-	    uniform sampler2D texture0;\
+	    uniform sampler2D textureA;\
+        uniform sampler2D textureB;\
 	    uniform vec3 specular;\
 	    uniform vec3 camPos;\
 	    uniform vec3 lightPos;\
@@ -162,7 +163,7 @@ int initializeShaderProgram(void) {
 	    varying vec3 normalDir;\
 	    varying vec2 st;\
 	    void main() {\
-	        vec3 surfCol = vec3(texture2D(texture0, st));\
+	        vec3 surfCol = vec3((texture2D(textureA, st) + texture2D(textureB, st)) * 0.5);\
 	        vec3 norDir = normalize(normalDir);\
 	        vec3 litDir = normalize(lightPos - fragPos);\
 	        vec3 camDir = normalize(camPos - fragPos);\
@@ -197,7 +198,7 @@ int initializeShaderProgram(void) {
 		modelingLoc = glGetUniformLocation(program, "modeling");
 		unifLocs[0] = glGetUniformLocation(program, "specular");
 	    camPosLoc = glGetUniformLocation(program, "camPos");
-		textureLoc[0] = glGetUniformLocation(program, "texture");
+		textureLoc[0] = glGetUniformLocation(program, "textureA");
 		textureLoc[1] = glGetUniformLocation(program, "textureB");
 	    lightPosLoc = glGetUniformLocation(program, "lightPos");
 	    lightColLoc = glGetUniformLocation(program, "lightCol");
@@ -233,8 +234,11 @@ int initializeTex() {
     sceneSetOneTexture(&rootNode, 0, &texA);
     sceneSetOneTexture(&rootNode, 1, &texB);
 
-    sceneSetOneTexture(&siblingNode, 0, &texA);
+    sceneSetOneTexture(&siblingNode, 0, &texC);
     sceneSetOneTexture(&siblingNode, 1, &texC);
+
+    sceneSetOneTexture(&childNode, 0, &texB);
+    sceneSetOneTexture(&childNode, 1, &texB);
 
     return 0;
 }
@@ -265,7 +269,7 @@ void render(void) {
 	GLuint unifDims[1] = {2};
 	GLuint attrDims[3] = {3, 2, 3};
 
-	lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc,dirLoc,cosLoc);	
+	lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc, dirLoc, cosLoc);	
 	sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 3, 
 		attrDims, attrLocs, textureLoc);
 }
