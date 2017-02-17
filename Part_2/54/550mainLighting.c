@@ -219,8 +219,11 @@ int initializeTex() {
     sceneSetOneTexture(&rootNode, 0, &texA);
     sceneSetOneTexture(&rootNode, 1, &texB);
 
-    sceneSetOneTexture(&siblingNode, 0, &texA);
+    sceneSetOneTexture(&siblingNode, 0, &texC);
     sceneSetOneTexture(&siblingNode, 1, &texC);
+
+    sceneSetOneTexture(&childNode, 0, &texB);
+    sceneSetOneTexture(&childNode, 1, &texB);
 
     return 0;
 }

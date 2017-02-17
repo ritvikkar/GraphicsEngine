@@ -118,7 +118,7 @@ int initializeScene(void) {
 	lightSetTranslation(&light, lightTranslation);
 	lightSetColor(&light, lightColor);
 	lightSetAttenuation(&light, lightAttenuation);
-	lightSetSpotAngle(&light, 42.0);
+	lightSetSpotAngle(&light, 40.0);
 	lightShineFrom(&light, lightTranslation, 0.0, 0.0);
 
 	return 0;
@@ -176,7 +176,7 @@ int initializeShaderProgram(void) {
 	        float cosGam = dot(aimDir,-1.0 * litDir);\
 	        if (diffInt <= 0.0 || specInt <= 0.0)\
 	            specInt = 0.0;\
-	        float ambInt = 0.2;\
+	        float ambInt = 0.1;\
 	        if (diffInt <= ambInt)\
 	            diffInt = ambInt;\
 	        vec3 diffLight = diffInt * lightCol * surfCol;\
