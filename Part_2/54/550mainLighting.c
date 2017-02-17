@@ -28,6 +28,9 @@ GLuint program;
 GLint attrLocs[3];
 GLint viewingLoc, modelingLoc;
 GLint texCoordsLoc, textureLoc[2];
+GLint lightPosLoc, lightColLoc, lightAttLoc;
+lightLight light;
+GLint camPosLoc;
 GLint unifLocs[1];
 camCamera cam;
 /* Allocate three meshes and three scene graph nodes. */
@@ -101,9 +104,19 @@ int initializeScene(void) {
 	vecSet(3, trans, 0.0, 1.0, 0.0);
 	sceneSetTranslation(&siblingNode, trans);
 	GLdouble unif[2] = {1.0, 1.0};
+	
 	sceneSetUniform(&siblingNode, unif);
 	sceneSetUniform(&childNode, unif);
 	sceneSetUniform(&rootNode, unif);
+
+	GLdouble lightTranslation[3] = {3.0, 3.0, 0.0};
+	GLdouble lightColor[3] = {1.0, 1.0, 1.0};
+	GLdouble lightAttenuation[3] = {1.0, 0.0, 0.0};
+
+	lightSetTranslation(&light, lightTranslation);
+	lightSetColor(&light, lightColor);
+	lightSetAttenuation(&light, lightAttenuation);
+
 	return 0;
 }
 
@@ -133,8 +146,7 @@ int initializeShaderProgram(void) {
 	        st = texCoords;\
 	    }";
 	GLchar fragmentCode[] = "\
-	    uniform sampler2D texture;\
-	    uniform sampler2D textureB;\
+	    uniform sampler2D texture0;\
 	    uniform vec3 specular;\
 	    uniform vec3 camPos;\
 	    uniform vec3 lightPos;\
@@ -171,9 +183,13 @@ int initializeShaderProgram(void) {
 		attrLocs[2] = glGetAttribLocation(program, "normal");
 		viewingLoc = glGetUniformLocation(program, "viewing");
 		modelingLoc = glGetUniformLocation(program, "modeling");
-		unifLocs[0] = glGetUniformLocation(program, "spice");
+		unifLocs[0] = glGetUniformLocation(program, "specular");
+	    camPosLoc = glGetUniformLocation(program, "camPos");
 		textureLoc[0] = glGetUniformLocation(program, "texture");
 		textureLoc[1] = glGetUniformLocation(program, "textureB");
+	    lightPosLoc = glGetUniformLocation(program, "lightPos");
+	    lightColLoc = glGetUniformLocation(program, "lightCol");
+	    lightAttLoc = glGetUniformLocation(program, "lightAtt");	
 	}
 	return (program == 0);
 }
@@ -214,6 +230,14 @@ void render(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
 	camRender(&cam, viewingLoc);
+
+	/* calculating the camera position */
+	GLdouble camPos[3];
+	vecCopy(3, cam.translation, camPos);
+	GLfloat camFloat[3];
+	vecOpenGL(3, camPos, camFloat);
+	glUniform3fv(camPosLoc, 1, camFloat);
+
 	/* This animation code is different from that in 520mainCamera.c. */
 	GLdouble rot[3][3], identity[4][4], axis[3] = {1.0, 1.0, 1.0};
 	vecUnit(3, axis, axis);
@@ -221,6 +245,7 @@ void render(void) {
 	mat33AngleAxisRotation(alpha, axis, rot);
 	sceneSetRotation(&rootNode, rot);
 	sceneSetOneUniform(&rootNode, 0, 0.5 + 0.5 * sin(alpha * 7.0));
+
 	/* This rendering code is different from that in 520mainCamera.c. */
 	mat44Identity(identity);
 	GLuint unifDims[1] = {2};
@@ -234,11 +259,12 @@ int main(void) {
     if (glfwInit() == 0)
         return 1;
     GLFWwindow *window;
-    window = glfwCreateWindow(512, 512, "Texture Mapping", NULL, NULL);
+    window = glfwCreateWindow(512, 512, "Lighting", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         return 2;
     }
+
     glfwSetWindowSizeCallback(window, handleResize);
     glfwSetKeyCallback(window, handleKey);
     glfwMakeContextCurrent(window);
@@ -263,14 +289,18 @@ int main(void) {
     GLdouble target[3] = {0.0, 0.0, 0.0};
 	camSetControls(&cam, camPERSPECTIVE, M_PI / 6.0, 10.0, 512.0, 512.0, 10.0, 
 		M_PI / 4.0, M_PI / 4.0, target);
+
     while (glfwWindowShouldClose(window) == 0) {
         render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
     glDeleteProgram(program);
     /* Don't forget to destroy the whole scene. */
     texDestroy(&texA);
+    texDestroy(&texB);
+    texDestroy(&texC);
     destroyScene();
 	glfwDestroyWindow(window);
     glfwTerminate();
