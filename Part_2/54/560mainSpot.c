@@ -18,8 +18,8 @@
 #include "540texture.c"
 #include "530vector.c"
 #include "510mesh.c"
-#include "560light.c"
 #include "520matrix.c"
+#include "560light.c"
 #include "520camera.c"
 #include "540scene.c"
 
@@ -119,7 +119,7 @@ int initializeScene(void) {
 	lightSetColor(&light, lightColor);
 	lightSetAttenuation(&light, lightAttenuation);
 	lightSetSpotAngle(&light, 42.0);
-	lightShineFrom(&light, transl, 0.0, 0.0);
+	lightShineFrom(&light, lightTranslation, 0.0, 0.0);
 
 	return 0;
 }
@@ -265,7 +265,7 @@ void render(void) {
 	GLuint unifDims[1] = {2};
 	GLuint attrDims[3] = {3, 2, 3};
 
-	lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc);	
+	lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc,dirLoc,cosLoc);	
 	sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 3, 
 		attrDims, attrLocs, textureLoc);
 }
