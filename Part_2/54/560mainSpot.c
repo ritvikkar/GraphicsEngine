@@ -172,7 +172,7 @@ int initializeShaderProgram(void) {
 	        float a = lightAtt[0] + lightAtt[1] * d + lightAtt[2] * d * d;\
 	        float diffInt = dot(norDir, litDir) / a;\
 	        float specInt = dot(refDir, camDir);\
-	        float cosGam - dot(aimDir,-1.0 * litDir);\
+	        float cosGam = dot(aimDir,-1.0 * litDir);\
 	        if (diffInt <= 0.0 || specInt <= 0.0)\
 	            specInt = 0.0;\
 	        float ambInt = 0.1;\
