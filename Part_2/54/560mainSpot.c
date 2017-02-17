@@ -176,7 +176,7 @@ int initializeShaderProgram(void) {
 	        float cosGam = dot(aimDir,-1.0 * litDir);\
 	        if (diffInt <= 0.0 || specInt <= 0.0)\
 	            specInt = 0.0;\
-	        float ambInt = 0.1;\
+	        float ambInt = 0.2;\
 	        if (diffInt <= ambInt)\
 	            diffInt = ambInt;\
 	        vec3 diffLight = diffInt * lightCol * surfCol;\
@@ -185,7 +185,7 @@ int initializeShaderProgram(void) {
 			if (cosGam >= halfCos) {\
 				gl_FragColor = vec4(diffLight + specLight, 1.0);\
 			} else {\
-				gl_FragColor = vec4(0.0);\
+				gl_FragColor = vec4(ambInt*diffLight,1.0);\
 			}\
 	    }";
 	program = makeProgram(vertexCode, fragmentCode);
