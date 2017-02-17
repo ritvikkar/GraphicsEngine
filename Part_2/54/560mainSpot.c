@@ -110,7 +110,7 @@ int initializeScene(void) {
 	sceneSetUniform(&childNode, unif);
 	sceneSetUniform(&rootNode, unif);
 
-	GLdouble lightTranslation[3] = {3.0, 3.0, 0.0};
+	GLdouble lightTranslation[3] = {1.0, 3.0, 0.0};
 	GLdouble lightColor[3] = {1.0, 1.0, 1.0};
 	GLdouble lightAttenuation[3] = {1.0, 0.0, 0.0};
 	
@@ -176,7 +176,7 @@ int initializeShaderProgram(void) {
 	        float cosGam = dot(aimDir,-1.0 * litDir);\
 	        if (diffInt <= 0.0 || specInt <= 0.0)\
 	            specInt = 0.0;\
-	        float ambInt = 0.1;\
+	        float ambInt = 0.3;\
 	        if (diffInt <= ambInt)\
 	            diffInt = ambInt;\
 	        vec3 diffLight = diffInt * lightCol * surfCol;\
