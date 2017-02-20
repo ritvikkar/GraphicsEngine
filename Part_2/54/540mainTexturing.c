@@ -1,6 +1,6 @@
 /*
  * 540mainTexturing.c
- * by Ritvik Kar
+ * by Ritvik Kar & Martin Green
  * CS 331: Computer Graphics
 */
 
