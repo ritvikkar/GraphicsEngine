@@ -1,5 +1,5 @@
 /*
- * 510mesh.c
+ * 580mesh.c
  * by Ritvik Kar & Martin Green
  * CS 311: Computer Graphics
  */
@@ -12,7 +12,7 @@ the accessors below such as meshSetTriangle, meshSetVertex. */
 typedef struct meshMesh meshMesh;
 struct meshMesh {
     GLuint triNum, vertNum, attrDim;
-    GLuint *tri;                        /* triNum * 3 GLuints */
+    GLuint *tri;                    /* triNum * 3 GLuints */
     GLdouble *vert;                 /* vertNum * attrDim GLdoubles */
 };
 
@@ -89,6 +89,30 @@ struct meshGLMesh {
     GLuint buffers[2];
 };
 
+/* attrLocs is meshGL->attrNum locations in the active shader program. index is 
+an integer between 0 and meshGL->voaNum - 1, inclusive. This function 
+initializes the VAO at that index in the meshGL's array of VAOs, so that the 
+VAO can render using those locations. */
+void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[]){
+    GLuint zero = 0;
+    if (zero <= index && index < meshGL->vaoNum) {
+        // Talking to certain VAO
+        glBindVertexArray(meshGL->vaos[index]);
+
+        GLint offset = 0;
+        for (GLuint i = 0; i < meshGL->attrNum; i++) {
+
+            // Bind all the buffers
+            glEnableVertexAttribArray(attrLocs[i]);
+            glVertexAttribPointer(attrLocs[i], meshGL->attrDims[i], GL_DOUBLE, GL_FALSE, 
+                meshGL->attrDim * sizeof(GLdouble), BUFFER_OFFSET(offset * sizeof(GLdouble)));
+            offset += meshGL->attrDims[i];
+        }
+        // Clean up
+        glBindVertexArray(0);
+    }
+}
+
 /* Initializes an OpenGL mesh from a non-OpenGL mesh. vaoNum is the number of 
 vertex array objects attached to this mesh storage. Typically vaoNum equals the 
 number of distinct shader programs that will need to draw the mesh. Returns 0 
@@ -125,33 +149,6 @@ int meshGLInitialize(meshGLMesh *meshGL, meshMesh *mesh, GLuint attrNum,
 }
 
 #define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
-
-/* attrLocs is meshGL->attrNum locations in the active shader program. index is 
-an integer between 0 and meshGL->voaNum - 1, inclusive. This function 
-initializes the VAO at that index in the meshGL's array of VAOs, so that the 
-VAO can render using those locations. */
-void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[]) {
-    GLuint zero = 0;
-    if (zero <= index && index < meshGL->vaoNum) {
-        // Talking to certain VAO
-        glBindVertexArray(meshGL->vaos[index]);
-
-        GLint offset = 0;
-        for (GLuint i = 0; i < meshGL->attrNum; i++) {
-
-            // Bind all the buffers
-            glEnableVertexAttribArray(attrLocs[i]);
-            glVertexAttribPointer(attrLocs[i], meshGL->attrDims[i], GL_DOUBLE, GL_FALSE, 
-                meshGL->attrDim * sizeof(GLdouble), BUFFER_OFFSET(offset * sizeof(GLdouble)));
-
-            offset += meshGL->attrDims[i];
-        }
-
-        // Clean up
-        glBindVertexArray(0);
-    }
-}
-
 
 /* Renders the already-initialized OpenGL mesh. attrDims is an array of length 
 attrNum. For each i, its ith entry is the dimension of the ith attribute 
