@@ -7,3 +7,6 @@ We re-write our graphics engine using one or more hardware acceleration paradigm
 520mainCamera.c 		: Abstract camera in OpenGL
 530mainScene.c 			: Scene graph
 540mainTexturing.c 		: Texture Mapping
+550mainLighting.c 		: Lighting (directional, specular)
+560mainSpot.c 			: Lighting (spotlight)
+580mainSpot.c 			: Lighting (spotlight) (OpenGL 3.2)
