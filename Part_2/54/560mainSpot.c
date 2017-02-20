@@ -1,7 +1,7 @@
 /*
  * 560mainSpot.c
  * by Ritvik Kar & Martin Green
- * CS 331: Computer Graphics
+ * CS 311: Computer Graphics
 */
 
 /* On macOS, compile with...
@@ -189,7 +189,7 @@ int initializeShaderProgram(void) {
                 gl_FragColor = vec4(ambInt*diffLight,1.0);\
             }\
         }";
-        
+
     program = makeProgram(vertexCode, fragmentCode);
     if (program != 0) {
         glUseProgram(program);

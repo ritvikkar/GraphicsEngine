@@ -1,7 +1,7 @@
 /*
  * 550mainLighting.c
  * by Ritvik Kar & Martin Green
- * CS 331: Computer Graphics
+ * CS 311: Computer Graphics
 */
 
 /* On macOS, compile with...
@@ -178,7 +178,7 @@ int initializeShaderProgram(void) {
             vec3 specLight = pow(specInt / a, shininess) * lightCol * specular;\
             gl_FragColor = vec4(diffLight + specLight, 1.0);\
         }";
-        
+
     program = makeProgram(vertexCode, fragmentCode);
     if (program != 0) {
         glUseProgram(program);
