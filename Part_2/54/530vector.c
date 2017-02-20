@@ -1,6 +1,6 @@
 /*
  * 530vector.c
- * by Ritvik Kar
+ * by Ritvik Kar & Martin Green
  * CS 331: Computer Graphics
 */
 
@@ -13,9 +13,7 @@ void vecSet(int dim, double v[], ...)
     va_start(argumentPointer, v);
 
     int i;
-
-    for (i = 0; i < dim; i++)
-    {
+    for (i = 0; i < dim; i++) {
         v[i] = va_arg(argumentPointer,double);   
     }
 
@@ -33,9 +31,7 @@ void vecPrint(int dim, double v[]) {
 /* Copies the dim-dimensional vector v to the dim-dimensional vector copy. */
 void vecCopy(int dim, double v[], double copy[]) {    
     int i;
-
-    for(i = 0; i < dim; i++)
-    {
+    for (i = 0; i < dim; i++) {
         copy[i] = v [i];
     }
 }
@@ -43,7 +39,6 @@ void vecCopy(int dim, double v[], double copy[]) {
 /* Adds the dim-dimensional vectors v and w. */
 void vecAdd(int dim, double v[], double w[], double vPlusW[]) {    
     int i;
-
     for (i = 0; i < dim; i++) {
         vPlusW[i] = v[i] + w[i];
     }
@@ -52,7 +47,6 @@ void vecAdd(int dim, double v[], double w[], double vPlusW[]) {
 /* Subtracts the dim-dimensional vectors v and w. */
 void vecSubtract(int dim, double v[], double w[], double vMinusW[]) {    
     int i;
-
     for (i = 0; i < dim; i++) {
         vMinusW[i] = v[i] - w[i];
     }
@@ -61,7 +55,6 @@ void vecSubtract(int dim, double v[], double w[], double vMinusW[]) {
 /* Scales the dim-dimensional vector w by the number c. */
 void vecScale(int dim, double c, double w[], double cTimesW[]) {
     int i;
-
     for (i = 0; i < dim; i++) {
         cTimesW[i] = w[i]*c;
     }	
@@ -71,8 +64,8 @@ void vecScale(int dim, double c, double w[], double cTimesW[]) {
 double vecDot(int dim, double v[], double w[]){
     int i;
     double dot;
-    for(i = 0; i < dim; ++i){
-        dot = dot + v[i]*w[i];
+    for (i = 0; i < dim; ++i) {
+        dot += v[i]*w[i];
     }
     return dot;
 }
@@ -92,7 +85,7 @@ non-zero, then also places a scaled version of v into the dim-dimensional
 vector unit, so that unit has length 1. */
 double vecUnit(int dim, double v[], double unit[]){
     double magnitude = vecLength(dim,v);
-    if(magnitude !=0){
+    if(magnitude != 0){
         vecScale(dim,1/magnitude,v,unit);
     }
     return magnitude;
@@ -117,8 +110,8 @@ void vec3Spherical(double rho, double phi, double theta, double v[3]) {
 
 /* Performs a type conversion from GLdouble to GLfloat */
 void vecOpenGL(int dim, GLdouble v[], GLfloat openGL[]) {
-    for (int i = 0; i < dim; i += 1)
-    {
+    int i;
+    for (i = 0; i < dim; i += 1) {
         openGL[i] = v[i];
     }
 }

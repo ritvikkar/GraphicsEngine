@@ -1,6 +1,6 @@
 /*
  * 520matrix.c
- * by Ritvik Kar
+ * by Ritvik Kar & Martin Green
  * CS 331: Computer Graphics
 */
 
@@ -22,10 +22,7 @@ GLdouble mat22Invert(GLdouble m[2][2], GLdouble mInv[2][2]) {
     determinant = m[0][0]*m[1][1] - m[0][1]*m[1][0];
     determinant = fabs(determinant);
 
-    if(determinant == 0.0){
-        
-    }
-    else{
+    if(determinant != 0.0) {
         GLdouble scale = 1/determinant;
         mInv[0][0] = scale*m[1][1];
         mInv[0][1] = scale*(-m[0][1]);
@@ -45,17 +42,17 @@ void mat221Multiply(GLdouble m[2][2], GLdouble v[2], GLdouble mTimesV[2]) {
 
 /* Fills the matrix m from its two columns. */
 void mat22Columns(GLdouble col0[2], GLdouble col1[2], GLdouble m[2][2]) {
-	m[0][0]=col0[0];
-    m[0][1]=col1[0];
-    m[1][0]=col0[1];
-    m[1][1]=col1[1];
+	m[0][0] = col0[0];
+    m[0][1] = col1[0];
+    m[1][0] = col0[1];
+    m[1][1] = col1[1];
 }
 
 /* 3x3Matrices */
 
 /* Builds a 3x3 identity matrix */
 void mat33Identity(GLdouble m[3][3]){
-    int i,j;
+    int i, j;
     for(i = 0; i < 3; i++) {
         for(j = 0; j < 3; j++) {
             m[i][j] = 0.0;
@@ -68,7 +65,7 @@ void mat33Identity(GLdouble m[3][3]){
 
 /* Multiplies the 3x3 matrix m by the 3x3 matrix n. */
 void mat333Multiply(GLdouble m[3][3], GLdouble n[3][3], GLdouble mTimesN[3][3]) {
-    int i,j;
+    int i, j;
     for(i = 0; i < 3; i++) {
         for(j = 0; j < 3; j++) {
             mTimesN[i][j] = m[i][0]*n[0][j] + m[i][1]*n[1][j] + m[i][2]*n[2][j];
@@ -89,22 +86,22 @@ coordinates. More precisely, the transformation first rotates through the angle
 theta (in radians, counterclockwise), and then translates by the vector (x, y).
 */
 void mat33Isometry(GLdouble theta, GLdouble x, GLdouble y, GLdouble isom[3][3]) {    
-    isom[0][0]=cos(theta);
-    isom[0][1]=(-1)*sin(theta);
-    isom[0][2]=x;
+    isom[0][0] = cos(theta);
+    isom[0][1] = (-1)*sin(theta);
+    isom[0][2] = x;
 
-    isom[1][0]=sin(theta);
-    isom[1][1]=cos(theta);
-    isom[1][2]=y;
+    isom[1][0] = sin(theta);
+    isom[1][1] = cos(theta);
+    isom[1][2] = y;
 
-    isom[2][0]=0;
-    isom[2][1]=0;
-    isom[2][2]=1;
+    isom[2][0] = 0;
+    isom[2][1] = 0;
+    isom[2][2] = 1;
 }
 /* Given a 3x3 matrix, return it's transpose, i.e. rows become
 columns thus columns become rows */
 void mat33Transpose(GLdouble m[3][3], GLdouble m_T[3][3]){
-    int i,j;
+    int i, j;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             m_T[i][j] = m[j][i];
@@ -134,11 +131,11 @@ void mat33AngleAxisRotation(GLdouble theta, GLdouble axis[3], GLdouble rot[3][3]
     mat333Multiply(U, U, UU);
 
     //identity matrix
-    GLdouble I[3][3] = {{1.0,0.0,0.0},
-                        {0.0,1.0,0.0},
-                        {0.0,0.0,1.0}};
+    GLdouble I[3][3] = {{1.0, 0.0, 0.0},
+                        {0.0, 1.0, 0.0},
+                        {0.0, 0.0, 1.0}};
     
-    int i,j;
+    int i, j;
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++) {
             rot[i][j] = I[i][j] + (sin(theta)*U[i][j]) + ((1.0 - cos(theta))*(UU[i][j]));
@@ -157,7 +154,7 @@ void mat33BasisRotation(GLdouble u[3], GLdouble v[3], GLdouble a[3], GLdouble b[
 
     GLdouble w[3];//u x v
     vec3Cross(u, v, w);
-    int i,j;
+    int i, j;
     for (i = 0; i < 3 ; i++){
         R[i][0] = u[i];
         R[i][1] = v[i];
@@ -174,15 +171,15 @@ void mat33BasisRotation(GLdouble u[3], GLdouble v[3], GLdouble a[3], GLdouble b[
     }//forming S out of [a b c] columns
 
     GLdouble R_T[3][3];//R Transpose
-    mat33Transpose(R,R_T);
-    mat333Multiply(S,R_T,rot);
+    mat33Transpose(R, R_T);
+    mat333Multiply(S, R_T, rot);
 }
 
 /* 4x4Matrices */
 
 /* Builds a 4x4 identity matrix */
 void mat44Identity(GLdouble m[4][4]){
-    int i,j;
+    int i, j;
     for(i = 0; i < 4; i++) {
         for(j = 0; j < 4; j++) {
             m[i][j] = 0.0;
@@ -205,7 +202,7 @@ void mat44Copy(GLdouble m[4][4], GLdouble copy[4][4]) {
 
 /* Multiplies m by n, placing the answer in mTimesN. */
 void mat444Multiply(GLdouble m[4][4], GLdouble n[4][4], GLdouble mTimesN[4][4]){
-    int i,j;
+    int i, j;
     for(i = 0; i < 4; i++) {
         for(j = 0; j < 4; j++) {
             mTimesN[i][j] = m[i][0]*n[0][j] + m[i][1]*n[1][j] + m[i][2]*n[2][j] + m[i][3]*n[3][j];
@@ -224,7 +221,7 @@ void mat441Multiply(GLdouble m[4][4], GLdouble v[4], GLdouble mTimesV[4]){
 /* Given a rotation and a translation, forms the 4x4 homogeneous matrix 
 representing the rotation followed in time by the translation. */
 void mat44Isometry(GLdouble rot[3][3], GLdouble trans[3], GLdouble isom[4][4]){
-    int i,j;
+    int i, j;
     for (i = 0; i < 3; i++){
         for (j = 0; j < 3; j++){
             isom[i][j] = rot[i][j];
@@ -246,16 +243,16 @@ representing the inverse translation followed in time by the inverse rotation.
 That is, the isom produced by this function is the inverse to the isom 
 produced by mat44Isometry on the same inputs. */
 void mat44InverseIsometry(GLdouble rot[3][3], GLdouble trans[3], GLdouble isom[4][4]){
-    int i,j;
+    int i, j;
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++) {
             isom[i][j] = rot[j][i];
         }
     }
 
-    isom[0][3]=(-rot[0][0]*trans[0])-(rot[1][0]*trans[1])-(rot[2][0]*trans[2]);
-    isom[1][3]=(-rot[0][1]*trans[0])-(rot[1][1]*trans[1])-(rot[2][1]*trans[2]);
-    isom[2][3]=(-rot[0][2]*trans[0])-(rot[1][2]*trans[1])-(rot[2][2]*trans[2]);
+    isom[0][3] = (-rot[0][0]*trans[0])-(rot[1][0]*trans[1])-(rot[2][0]*trans[2]);
+    isom[1][3] = (-rot[0][1]*trans[0])-(rot[1][1]*trans[1])-(rot[2][1]*trans[2]);
+    isom[2][3] = (-rot[0][2]*trans[0])-(rot[1][2]*trans[1])-(rot[2][2]*trans[2]);
 
     isom[3][0] = 0.0;
     isom[3][1] = 0.0;
