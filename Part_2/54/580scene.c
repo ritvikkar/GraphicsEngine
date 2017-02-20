@@ -1,7 +1,7 @@
 /*
  * 540scene.c
  * by Ritvik Kar & Martin Green
- * CS 331: Computer Graphics
+ * CS 311: Computer Graphics
  */
 
 /*** Creation and destruction ***/
@@ -26,7 +26,7 @@ sceneDestroyRecursively when finished. Returns 0 if no error occurred. */
 int sceneInitialize(sceneNode *node, GLuint unifDim, meshGLMesh *mesh, 
                         GLuint texNum, sceneNode *firstChild, sceneNode *nextSibling) {
     node->unif = (GLdouble *)malloc(unifDim * sizeof(GLdouble) 
-    			+ texNum * sizeof(texTexture *));
+                + texNum * sizeof(texTexture *));
     
     if (node->unif == NULL)
         return 1;
@@ -158,8 +158,7 @@ modelingLoc. The attribute information exists to be passed to meshGLRender. The
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
                     GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-                    GLuint attrNum, GLuint attrDims[], GLint attrLocs[],
-                    GLint textureLocs[]) {
+                    GLint textureLocs[], GLuint vaoIndex) {
     
     if (node == NULL) { return; }
 
@@ -246,7 +245,7 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
         texRender(node->tex[7], GL_TEXTURE7, 7, textureLocs[7]);
     }
 
-    meshGLRender(node->meshGL, attrNum, attrDims, attrLocs);
+    meshGLRender(node->meshGL, vaoIndex);
 
     if(node->texNum == 1){
         texUnrender(*node->tex, GL_TEXTURE0);
@@ -295,12 +294,11 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
     }
 
     sceneRender(node->firstChild, renIsometry, modelingLoc,
-                    unifNum, unifDims, unifLocs, 
-                    attrNum, attrDims, attrLocs,
-                    textureLocs);
+        unifNum, unifDims, unifLocs, 
+        textureLocs, vaoIndex);
 
-    sceneRender(node->nextSibling, parent, modelingLoc, 
-                    unifNum, unifDims, unifLocs, 
-                    attrNum, attrDims, attrLocs,
-                    textureLocs);
+    sceneRender(node->nextSibling, renIsometry, modelingLoc,
+        unifNum, unifDims, unifLocs, 
+        textureLocs, vaoIndex);
+
 }

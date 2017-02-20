@@ -1,27 +1,28 @@
 /*
- * 560mainSpot.c
+ * 580mainSpot.c
  * by Ritvik Kar & Martin Green
  * CS 311: Computer Graphics
 */
 
 /* On macOS, compile with...
-    clang 560mainSpot.c -lglfw -framework OpenGL
+    clang -o spot32 580mainSpot.c /usr/local/gl3w/src/gl3w.o -lglfw -framework OpenGL -framework CoreFoundation
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
+#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 
 #include "500shader.c"
 #include "540texture.c"
 #include "530vector.c"
-#include "510mesh.c"
+#include "580mesh.c"
 #include "520matrix.c"
 #include "560light.c"
 #include "520camera.c"
-#include "540scene.c"
+#include "580scene.c"
 
 GLdouble alpha = 0.0;
 GLuint program;
@@ -38,6 +39,9 @@ camCamera cam;
 meshGLMesh rootMesh, childMesh, siblingMesh;
 sceneNode rootNode, childNode, siblingNode;
 texTexture texA, texB, texC;
+
+GLuint vertBuffers[2];
+GLuint vertVAO;
 
 void handleError(int error, const char *description) {
     fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -78,19 +82,30 @@ okay, because the program terminates almost immediately after this function
 returns. */
 int initializeScene(void) {
     /* Initialize meshes. */
+    GLuint attrDims[3] = {3, 2, 3};
     meshMesh mesh;
     if (meshInitializeCapsule(&mesh, 0.5, 2.0, 16, 32) != 0)
         return 1;
-    meshGLInitialize(&rootMesh, &mesh);
+    meshGLInitialize(&rootMesh, &mesh, 3, attrDims, 1);
+    meshGLVAOInitialize(&rootMesh, 1, attrLocs);
     meshDestroy(&mesh);
+
     if (meshInitializeBox(&mesh, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5) != 0)
         return 2;
-    meshGLInitialize(&childMesh, &mesh);
+    meshGLInitialize(&childMesh, &mesh, 3, attrDims, 1);
+    meshGLVAOInitialize(&childMesh, 1, attrLocs);
     meshDestroy(&mesh);
+    
     if (meshInitializeSphere(&mesh, 0.5, 16, 32) != 0)
         return 3;
-    meshGLInitialize(&siblingMesh, &mesh);
+    meshGLInitialize(&siblingMesh, &mesh, 3, attrDims, 1);
+    meshGLVAOInitialize(&siblingMesh, 1, attrLocs);
     meshDestroy(&mesh);
+
+    // int meshGLInitialize(meshGLMesh *meshGL, meshMesh *mesh, GLuint attrNum, 
+    //     GLuint attrDims[], GLuint vaoNum)
+
+    // void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[])
 
     /* Initialize scene graph nodes. */
     if (sceneInitialize(&siblingNode, 2, &siblingMesh, 2, NULL, NULL) != 0)
@@ -134,14 +149,15 @@ void destroyScene(void) {
 /* Returns 0 on success, non-zero on failure. */
 int initializeShaderProgram(void) {
     GLchar vertexCode[] = "\
+        #version 140\n\
         uniform mat4 viewing;\
         uniform mat4 modeling;\
-        attribute vec3 position;\
-        attribute vec2 texCoords;\
-        attribute vec3 normal;\
-        varying vec3 fragPos;\
-        varying vec3 normalDir;\
-        varying vec2 st;\
+        in vec3 position;\
+        in vec2 texCoords;\
+        in vec3 normal;\
+        out vec3 fragPos;\
+        out vec3 normalDir;\
+        out vec2 st;\
         void main() {\
             vec4 worldPos = modeling * vec4(position, 1.0);\
             gl_Position = viewing * worldPos;\
@@ -150,6 +166,7 @@ int initializeShaderProgram(void) {
             st = texCoords;\
         }";
     GLchar fragmentCode[] = "\
+        #version 140\n\
         uniform sampler2D textureA;\
         uniform sampler2D textureB;\
         uniform vec3 specular;\
@@ -159,11 +176,12 @@ int initializeShaderProgram(void) {
         uniform vec3 lightAtt;\
         uniform float halfCos;\
         uniform vec3 aim;\
-        varying vec3 fragPos;\
-        varying vec3 normalDir;\
-        varying vec2 st;\
+        in vec3 fragPos;\
+        in vec3 normalDir;\
+        in vec2 st;\
+        out vec4 fragColor;\
         void main() {\
-            vec3 surfCol = vec3((texture2D(textureA, st) + texture2D(textureB, st)) * 0.5);\
+            vec3 surfCol = vec3((texture(textureA, st) + texture(textureB, st)) * 0.5);\
             vec3 norDir = normalize(normalDir);\
             vec3 litDir = normalize(lightPos - fragPos);\
             vec3 camDir = normalize(camPos - fragPos);\
@@ -183,9 +201,9 @@ int initializeShaderProgram(void) {
             float shininess = 64.0;\
             vec3 specLight = pow(specInt / a, shininess) * lightCol * specular;\
             if (cosGam >= halfCos) {\
-                gl_FragColor = vec4(diffLight + specLight, 1.0);\
+                fragColor = vec4(diffLight + specLight, 1.0);\
             } else {\
-                gl_FragColor = vec4(ambInt*diffLight,1.0);\
+                fragColor = vec4(ambInt*diffLight,1.0);\
             }\
         }";
     program = makeProgram(vertexCode, fragmentCode);
@@ -267,19 +285,22 @@ void render(void) {
     /* This rendering code is different from that in 520mainCamera.c. */
     mat44Identity(identity);
     GLuint unifDims[1] = {2};
-    GLuint attrDims[3] = {3, 2, 3};
 
     lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc, dirLoc, cosLoc);    
-    sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 3, 
-        attrDims, attrLocs, textureLoc);
+    sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, textureLoc, 1);
 }
 
 int main(void) {
     glfwSetErrorCallback(handleError);
     if (glfwInit() == 0)
         return 1;
+    /* Ask GLFW to supply an OpenGL 3.2 context. */
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     GLFWwindow *window;
-    window = glfwCreateWindow(512, 512, "Spotlight", NULL, NULL);
+    window = glfwCreateWindow(1024, 512, "Spotlight 3.2", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         return 2;
@@ -288,6 +309,17 @@ int main(void) {
     glfwSetWindowSizeCallback(window, handleResize);
     glfwSetKeyCallback(window, handleKey);
     glfwMakeContextCurrent(window);
+    if (gl3wInit() != 0) {
+        fprintf(stderr, "main: gl3wInit failed.\n");
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return 3;
+    }
+    if (gl3wIsSupported(3, 2) == 0)
+        fprintf(stderr, "main: OpenGL 3.2 is not supported.\n");
+    else
+        fprintf(stderr, "main: OpenGL 3.2 is supported.\n");
+
     fprintf(stderr, "main: OpenGL %s, GLSL %s.\n", 
         glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
     glEnable(GL_DEPTH_TEST);
@@ -295,15 +327,15 @@ int main(void) {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     /* Initialize a whole scene, rather than just one mesh. */
-    if (initializeScene() != 0)
-        return 3;
     if (initializeShaderProgram() != 0)
         return 4;
+    if (initializeScene() != 0)
+        return 5;
 
     if (initializeTex() != 0) {
         glfwDestroyWindow(window);
         glfwTerminate();
-        return 5;
+        return 6;
     }
 
     GLdouble target[3] = {0.0, 0.0, 0.0};
