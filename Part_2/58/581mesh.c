@@ -89,12 +89,15 @@ struct meshGLMesh {
     GLuint buffers[2];
 };
 
+#define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
+
 /* attrLocs is meshGL->attrNum locations in the active shader program. index is 
 an integer between 0 and meshGL->voaNum - 1, inclusive. This function 
 initializes the VAO at that index in the meshGL's array of VAOs, so that the 
 VAO can render using those locations. */
 void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[]){
-    if (0 <= index && index < meshGL->vaoNum)
+    GLuint zero = 0;
+    if (zero <= index && index < meshGL->vaoNum)
         glBindVertexArray(meshGL->vaos[index]);
 
     else
@@ -111,8 +114,8 @@ void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[]){
 
     for (GLuint i = 0; i < meshGL->attrNum; i++)
     {
-        GLuint attrDim = meshGl->attrDims[i];
-        glVertexAttribPointer(attrLocs[i], meshGl->attrDim, GL_DOUBLE, GL_FALSE,
+        GLuint attrDim = meshGL->attrDims[i];
+        glVertexAttribPointer(attrLocs[i], meshGL->attrDim, GL_DOUBLE, GL_FALSE,
                                 meshGL->attrDim * sizeof(GLdouble),
                                 BUFFER_OFFSET(offset * sizeof(GLdouble)));
 
@@ -159,8 +162,6 @@ int meshGLInitialize(meshGLMesh *meshGL, meshMesh *mesh, GLuint attrNum,
 
     return 0;
 }
-
-#define BUFFER_OFFSET(bytes) ((GLubyte*) NULL + (bytes))
 
 /* Renders the already-initialized OpenGL mesh. attrDims is an array of length 
 attrNum. For each i, its ith entry is the dimension of the ith attribute 
