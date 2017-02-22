@@ -115,11 +115,11 @@ void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[]){
     for (GLuint i = 0; i < meshGL->attrNum; i++)
     {
         GLuint attrDim = meshGL->attrDims[i];
-        glVertexAttribPointer(attrLocs[i], meshGL->attrDim, GL_DOUBLE, GL_FALSE,
+        glVertexAttribPointer(attrLocs[i], attrDim, GL_DOUBLE, GL_FALSE,
                                 meshGL->attrDim * sizeof(GLdouble),
                                 BUFFER_OFFSET(offset * sizeof(GLdouble)));
 
-        offset = offset + meshGL->attrDim;
+        offset = offset + attrDim;
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshGL->buffers[1]);

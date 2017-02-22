@@ -1,5 +1,5 @@
 /*
- * 540scene.c
+ * 580scene.c
  * by Ritvik Kar & Martin Green
  * CS 311: Computer Graphics
  */
@@ -243,12 +243,16 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
         }
     }
 
-    sceneRender(node->firstChild, renIsometry, modelingLoc,
-        unifNum, unifDims, unifLocs, 
-        textureLocs, vaoIndex);
+    if (node->firstChild != NULL) {
+        sceneRender(node->firstChild, renIsometry, modelingLoc, 
+                    unifNum, unifDims, unifLocs,
+                    textureLocs, vaoIndex);
+    }
 
-    sceneRender(node->nextSibling, renIsometry, modelingLoc,
-        unifNum, unifDims, unifLocs, 
-        textureLocs, vaoIndex);
+    if (node->nextSibling != NULL) {
+        sceneRender(node->nextSibling, parent, modelingLoc, 
+                    unifNum, unifDims, unifLocs, 
+                    textureLocs, vaoIndex);
+    }
 
 }
