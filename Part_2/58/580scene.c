@@ -1,5 +1,5 @@
 /*
- * 540scene.c
+ * 580scene.c
  * by Ritvik Kar & Martin Green
  * CS 311: Computer Graphics
  */
@@ -158,9 +158,11 @@ modelingLoc. The attribute information exists to be passed to meshGLRender. The
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
                     GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-                    GLint textureLocs[], GLuint vaoIndex) {
+                    GLuint vaoIndex, GLint textureLocs[]) {
     
-    if (node == NULL) { return; }
+    if (node == NULL) { 
+        return; 
+    }
 
     /* Set the uniform modeling matrix. */
     GLdouble isometry[4][4];
@@ -199,106 +201,58 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
     }
 
     /* Render the mesh, the children, and the younger siblings. */
-    if(node->texNum == 1){
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-    } else if (node->texNum == 2) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-    } else if (node->texNum == 3) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-    } else if (node->texNum == 4) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-        texRender(node->tex[3], GL_TEXTURE3, 3, textureLocs[3]);
-    } else if (node->texNum == 5) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-        texRender(node->tex[3], GL_TEXTURE3, 3, textureLocs[3]);
-        texRender(node->tex[4], GL_TEXTURE4, 4, textureLocs[4]);
-    } else if (node->texNum == 6) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-        texRender(node->tex[3], GL_TEXTURE3, 3, textureLocs[3]);
-        texRender(node->tex[4], GL_TEXTURE4, 4, textureLocs[4]);
-        texRender(node->tex[5], GL_TEXTURE5, 5, textureLocs[5]);
-    } else if (node->texNum == 7) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-        texRender(node->tex[3], GL_TEXTURE3, 3, textureLocs[3]);
-        texRender(node->tex[4], GL_TEXTURE4, 4, textureLocs[4]);
-        texRender(node->tex[5], GL_TEXTURE5, 5, textureLocs[5]);
-        texRender(node->tex[6], GL_TEXTURE6, 6, textureLocs[6]);
-    } else if (node->texNum == 8) {
-        texRender(node->tex[0], GL_TEXTURE0, 0, textureLocs[0]);
-        texRender(node->tex[1], GL_TEXTURE1, 1, textureLocs[1]);
-        texRender(node->tex[2], GL_TEXTURE2, 2, textureLocs[2]);
-        texRender(node->tex[3], GL_TEXTURE3, 3, textureLocs[3]);
-        texRender(node->tex[4], GL_TEXTURE4, 4, textureLocs[4]);
-        texRender(node->tex[5], GL_TEXTURE5, 5, textureLocs[5]);
-        texRender(node->tex[6], GL_TEXTURE6, 6, textureLocs[6]);
-        texRender(node->tex[7], GL_TEXTURE7, 7, textureLocs[7]);
+    for (GLuint i = 0; i < node->texNum; i++) {
+        if (i == 0) {
+            texRender(node->tex[i], GL_TEXTURE0, i, textureLocs[i]);
+        } else if (i == 1) {
+            texRender(node->tex[i], GL_TEXTURE1, i, textureLocs[i]);
+        } else if (i == 2) {
+            texRender(node->tex[i], GL_TEXTURE2, i, textureLocs[i]);
+        } else if (i == 3) {
+            texRender(node->tex[i], GL_TEXTURE3, i, textureLocs[i]);
+        } else if (i == 4) {
+            texRender(node->tex[i], GL_TEXTURE4, i, textureLocs[i]);
+        } else if (i == 5) {
+            texRender(node->tex[i], GL_TEXTURE5, i, textureLocs[i]);
+        } else if (i == 6) {
+            texRender(node->tex[i], GL_TEXTURE6, i, textureLocs[i]);
+        } else if (i == 7) {
+            texRender(node->tex[i], GL_TEXTURE7, i, textureLocs[i]);
+        }
     }
 
     meshGLRender(node->meshGL, vaoIndex);
 
-    if(node->texNum == 1){
-        texUnrender(*node->tex, GL_TEXTURE0);
-    } else if (node->texNum == 2) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-    } else if (node->texNum == 3) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-    } else if (node->texNum == 4) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-        texUnrender(*node->tex, GL_TEXTURE3);
-    } else if (node->texNum == 5) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-        texUnrender(*node->tex, GL_TEXTURE3);
-        texUnrender(*node->tex, GL_TEXTURE4);
-    } else if (node->texNum == 6) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-        texUnrender(*node->tex, GL_TEXTURE3);
-        texUnrender(*node->tex, GL_TEXTURE4);
-        texUnrender(*node->tex, GL_TEXTURE5);
-    } else if (node->texNum == 7) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-        texUnrender(*node->tex, GL_TEXTURE3);
-        texUnrender(*node->tex, GL_TEXTURE4);
-        texUnrender(*node->tex, GL_TEXTURE5);
-        texUnrender(*node->tex, GL_TEXTURE6);
-    } else if (node->texNum == 8) {
-        texUnrender(*node->tex, GL_TEXTURE0);
-        texUnrender(*node->tex, GL_TEXTURE1);
-        texUnrender(*node->tex, GL_TEXTURE2);
-        texUnrender(*node->tex, GL_TEXTURE3);
-        texUnrender(*node->tex, GL_TEXTURE4);
-        texUnrender(*node->tex, GL_TEXTURE5);
-        texUnrender(*node->tex, GL_TEXTURE6);
-        texUnrender(*node->tex, GL_TEXTURE7);
+    for (GLuint i = 0; i < node->texNum; i++) {
+        if (i == 0) {
+            texUnrender(node->tex[i], GL_TEXTURE0);
+        } else if (i == 1) {
+            texUnrender(node->tex[i], GL_TEXTURE1);
+        } else if (i == 2) {
+            texUnrender(node->tex[i], GL_TEXTURE2);
+        } else if (i == 3) {
+            texUnrender(node->tex[i], GL_TEXTURE3);
+        } else if (i == 4) {
+            texUnrender(node->tex[i], GL_TEXTURE4);
+        } else if (i == 5) {
+            texUnrender(node->tex[i], GL_TEXTURE5);
+        } else if (i == 6) {
+            texUnrender(node->tex[i], GL_TEXTURE6);
+        } else if (i == 7) {
+            texUnrender(node->tex[i], GL_TEXTURE7);
+        }
     }
 
-    sceneRender(node->firstChild, renIsometry, modelingLoc,
-        unifNum, unifDims, unifLocs, 
-        textureLocs, vaoIndex);
+    if (node->firstChild != NULL) {
+        sceneRender(node->firstChild, renIsometry, modelingLoc, 
+                    unifNum, unifDims, unifLocs,
+                    vaoIndex, textureLocs);
+    }
 
-    sceneRender(node->nextSibling, renIsometry, modelingLoc,
-        unifNum, unifDims, unifLocs, 
-        textureLocs, vaoIndex);
+    if (node->nextSibling != NULL) {
+        sceneRender(node->nextSibling, parent, modelingLoc, 
+                    unifNum, unifDims, unifLocs, 
+                    vaoIndex, textureLocs);
+    }
 
 }

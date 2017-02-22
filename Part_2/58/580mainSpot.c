@@ -8,12 +8,22 @@
     clang -o spot32 580mainSpot.c /usr/local/gl3w/src/gl3w.o -lglfw -framework OpenGL -framework CoreFoundation
 */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
+/* Include the GL3W header before any other OpenGL-related headers. */
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
+
+#include <sys/time.h>
+
+double getTime(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec * 0.000001;
+}
 
 #include "500shader.c"
 #include "540texture.c"
@@ -87,19 +97,19 @@ int initializeScene(void) {
     if (meshInitializeCapsule(&mesh, 0.5, 2.0, 16, 32) != 0)
         return 1;
     meshGLInitialize(&rootMesh, &mesh, 3, attrDims, 1);
-    meshGLVAOInitialize(&rootMesh, 1, attrLocs);
+    meshGLVAOInitialize(&rootMesh, 0, attrLocs);
     meshDestroy(&mesh);
 
     if (meshInitializeBox(&mesh, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5) != 0)
         return 2;
     meshGLInitialize(&childMesh, &mesh, 3, attrDims, 1);
-    meshGLVAOInitialize(&childMesh, 1, attrLocs);
+    meshGLVAOInitialize(&childMesh, 0, attrLocs);
     meshDestroy(&mesh);
     
     if (meshInitializeSphere(&mesh, 0.5, 16, 32) != 0)
         return 3;
     meshGLInitialize(&siblingMesh, &mesh, 3, attrDims, 1);
-    meshGLVAOInitialize(&siblingMesh, 1, attrLocs);
+    meshGLVAOInitialize(&siblingMesh, 0, attrLocs);
     meshDestroy(&mesh);
 
     // int meshGLInitialize(meshGLMesh *meshGL, meshMesh *mesh, GLuint attrNum, 
@@ -287,20 +297,26 @@ void render(void) {
     GLuint unifDims[1] = {2};
 
     lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc, dirLoc, cosLoc);    
-    sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, textureLoc, 1);
+    sceneRender(&rootNode, identity, modelingLoc, 1, unifDims, unifLocs, 0, textureLoc);
 }
 
 int main(void) {
+    double oldTime;
+    double newTime = getTime();
+
     glfwSetErrorCallback(handleError);
-    if (glfwInit() == 0)
+    if (glfwInit() == 0){
+        fprintf(stderr, "main: glfwInit failed.\n");
         return 1;
+    }
+
     /* Ask GLFW to supply an OpenGL 3.2 context. */
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     GLFWwindow *window;
-    window = glfwCreateWindow(1024, 512, "Spotlight 3.2", NULL, NULL);
+    window = glfwCreateWindow(512, 512, "Spotlight 3.2", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         return 2;
@@ -309,12 +325,18 @@ int main(void) {
     glfwSetWindowSizeCallback(window, handleResize);
     glfwSetKeyCallback(window, handleKey);
     glfwMakeContextCurrent(window);
+
+    /* You might think that getting an OpenGL 3.2 context would make OpenGL 3.2 
+    available to us. But you'd be wrong. The following call 'loads' a bunch of 
+    OpenGL 3.2 functions, so that we can use them. This is why we use GL3W. */    
     if (gl3wInit() != 0) {
         fprintf(stderr, "main: gl3wInit failed.\n");
         glfwDestroyWindow(window);
         glfwTerminate();
         return 3;
     }
+    /* We rarely invoke any GL3W functions other than gl3wInit. But just for an 
+    educational example, let's ask GL3W about OpenGL support. */    
     if (gl3wIsSupported(3, 2) == 0)
         fprintf(stderr, "main: OpenGL 3.2 is not supported.\n");
     else
@@ -343,6 +365,10 @@ int main(void) {
         M_PI / 4.0, M_PI / 4.0, target);
 
     while (glfwWindowShouldClose(window) == 0) {
+        oldTime = newTime;
+        newTime = getTime();
+        if (floor(newTime) - floor(oldTime) >= 1.0)
+            fprintf(stderr, "main: %f frames/sec\n", 1.0 / (newTime - oldTime));
         render();
         glfwSwapBuffers(window);
         glfwPollEvents();
