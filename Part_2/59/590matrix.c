@@ -146,7 +146,8 @@ void mat33AngleAxisRotation(GLdouble theta, GLdouble axis[3], GLdouble rot[3][3]
 /* Given two length-1 3D vectors u, v that are perpendicular to each other. 
 Given two length-1 3D vectors a, b that are perpendicular to each other. Builds 
 the rotation matrix that rotates u to a and v to b. */
-void mat33BasisRotation(GLdouble u[3], GLdouble v[3], GLdouble a[3], GLdouble b[3], GLdouble rot[3][3]){
+void mat33BasisRotation(GLdouble u[3], GLdouble v[3], GLdouble a[3], GLdouble b[3], 
+        GLdouble rot[3][3]){
     //Form R [u v uxv] -> Then S [a b axb] -> Transpose R for R_T -> S x R_T = rot[3][3]
 
     GLdouble R[3][3];
@@ -205,7 +206,8 @@ void mat444Multiply(GLdouble m[4][4], GLdouble n[4][4], GLdouble mTimesN[4][4]){
     int i, j;
     for(i = 0; i < 4; i++) {
         for(j = 0; j < 4; j++) {
-            mTimesN[i][j] = m[i][0]*n[0][j] + m[i][1]*n[1][j] + m[i][2]*n[2][j] + m[i][3]*n[3][j];
+            mTimesN[i][j] = m[i][0]*n[0][j] + m[i][1]*n[1][j] 
+                          + m[i][2]*n[2][j] + m[i][3]*n[3][j];
         }
     }
 }
@@ -262,26 +264,18 @@ void mat44InverseIsometry(GLdouble rot[3][3], GLdouble trans[3], GLdouble isom[4
 
 /* Builds a 4x4 matrix that maps a projected viewing volume 
 [-1, 1] x [-1, 1] x [-1, 1] to screen [0, w - 1] x [0, h - 1] x [-1, 1]. */
-void mat44Viewport(GLdouble width, GLdouble height, GLdouble view[4][4]){
-    view[0][0] = width - 0.5;
-    view[0][1] = 0.0;
-    view[0][2] = 0.0;
-    view[0][3] = width - 0.5;
+void mat44Viewport(GLdouble width, GLdouble height, GLdouble view[4][4]) {
+    GLdouble tempViewport[4][4] = {
+        {(width - 1)/2, 0.0, 0.0, (width - 1)/2},
+        {0.0, (height - 1)/2, 0.0, (height - 1)/2},
+        {0.0, 0.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0, 1.0}
+    };
 
-    view[1][0] = 0;
-    view[1][1] = height - 0.5;
-    view[1][2] = 0;
-    view[1][3] = height - 0.5;
+    int i;
+    for (i = 0; i < 4; i += 1) 
+        vecCopy(4, tempViewport[i], view[i]);
 
-    view[2][0] = 0;
-    view[2][1] = 0;
-    view[2][2] = 1;
-    view[2][0] = 0;
-
-    view[3][0] = 0;
-    view[3][1] = 0;
-    view[3][2] = 0;
-    view[3][0] = 1;
 }
 
 /* Builds a 4x4 matrix representing orthographic projection with a boxy viewing 
@@ -290,26 +284,23 @@ the box is the rectangle R = [left, right] x [bottom, top], and on the far
 plane the box is the same rectangle R. Keep in mind that 0 > near > far. Maps 
 the viewing volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Orthographic(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, 
-        GLdouble far, GLdouble near, GLdouble proj[4][4]){
-    proj[0][0] = 2/(right-left);    
-    proj[0][1] = 0.0;
-    proj[0][2] = 0.0;
-    proj[0][3] = (-right-left)/(right-left);
+        GLdouble far, GLdouble near, GLdouble proj[4][4]) {
 
-    proj[1][0] = 0.0;
-    proj[1][1] = 2/(top-bottom);
-    proj[1][2] = 0.0;
-    proj[1][3] = (-top-bottom)/(top-bottom);
+    int i, j;
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
+            proj[i][j] = 0.0;
 
-    proj[2][0] = 0.0;
-    proj[2][1] = 0.0;
-    proj[2][2] = -2/(near-far);
-    proj[2][3] = (near+far)/(near-far);
+    proj[0][0] = 2 / (right - left);
+    proj[0][3] = (-right - left) / (right - left);
 
-    proj[3][0] = 0.0;
-    proj[3][1] = 0.0;
-    proj[3][2] = 0.0;
-    proj[3][3] = 1;
+    proj[1][1] = 2 / (top - bottom);
+    proj[1][3] = (-top - bottom) / (top - bottom);
+
+    proj[2][2] = -2 / (near - far);
+    proj[2][3] = -1 * (-near - far) / (near - far);
+
+    proj[3][3] = 1.0;
 }
 
 /* Builds a 4x4 matrix representing perspective projection. The viewing frustum 
@@ -318,27 +309,23 @@ plane, the frustum is the rectangle R = [left, right] x [bottom, top]. On the
 far plane, the frustum is the rectangle (far / near) * R. Maps the viewing 
 volume to [-1, 1] x [-1, 1] x [-1, 1]. */
 void mat44Perspective(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, 
-        GLdouble far, GLdouble near, GLdouble proj[4][4])
-{
-    proj[0][0] = (-2*near)/(right-left);
-    proj[0][1] = 0;
-    proj[0][2] = (right+left)/(right-left);
-    proj[0][3] = 0;
+        GLdouble far, GLdouble near, GLdouble proj[4][4]) {
 
-    proj[1][0] = 0;
-    proj[1][1] = (-2*near)/(top-bottom);
-    proj[1][2] = (top+bottom)/(top-bottom);
-    proj[1][3] = 0;
+    int i, j;
+    for (i = 0; i < 4; i += 1)
+        for (j = 0; j < 4; j += 1)
+            proj[i][j] = 0.0;
 
-    proj[2][0] = 0;
-    proj[2][1] = 0;
-    proj[2][2] = (near+far)/(near-far);
-    proj[2][3] = (-2*near*far)/(near-far);
+    proj[0][0] = (-2 * near) / (right - left);
+    proj[0][2] = (right + left) / (right - left);
 
-    proj[3][0] = 0;
-    proj[3][1] = 0;
-    proj[3][2] = -1;
-    proj[3][3] = 0;
+    proj[1][1] = (-2 * near) / (top - bottom);
+    proj[1][2] = (top + bottom) / (top - bottom);
+
+    proj[2][3] = (-2 * near * far) / (near - far);
+    proj[2][2] = -1 * (-near - far) / (near - far);
+
+    proj[3][2] = -1.0;
 }
 
 /* We want to pass matrices into OpenGL, but there are two obstacles. First, 

@@ -127,6 +127,7 @@ int initializeScene(void) {
     if (texInitializeFile(&texL, "tree.jpg", GL_LINEAR, GL_LINEAR, 
     		GL_REPEAT, GL_REPEAT) != 0)
     	return 5;
+    printf("got textures\n");
 	GLuint attrDims[3] = {3, 2, 3};
     double zs[12][12] = {
 		{5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 20.0}, 
@@ -157,8 +158,10 @@ int initializeScene(void) {
 	meshMesh mesh, meshLand;
 	if (meshInitializeLandscape(&meshLand, 12, 12, 5.0, (double *)zs) != 0)
 		return 6;
+	printf("init landscapes\n");
 	if (meshInitializeDissectedLandscape(&mesh, &meshLand, M_PI / 3.0, 1) != 0)
 		return 7;
+	printf("got landscapes\n");
 	/* There are now two VAOs per mesh. */
 	meshGLInitialize(&meshH, &mesh, 3, attrDims, 2);
 	meshGLVAOInitialize(&meshH, 0, attrLocs);
@@ -166,6 +169,7 @@ int initializeScene(void) {
 	meshDestroy(&mesh);
 	if (meshInitializeDissectedLandscape(&mesh, &meshLand, M_PI / 3.0, 0) != 0)
 		return 8;
+	printf("init mesh dissected landscapes\n");
 	meshDestroy(&meshLand);
 	double *vert, normal[2];
 	for (int i = 0; i < mesh.vertNum; i += 1) {
@@ -181,18 +185,21 @@ int initializeScene(void) {
 	meshDestroy(&mesh);
 	if (meshInitializeLandscape(&mesh, 12, 12, 5.0, (double *)ws) != 0)
 		return 9;
+	printf("init mesh landscapes\n");
 	meshGLInitialize(&meshW, &mesh, 3, attrDims, 2);
 	meshGLVAOInitialize(&meshW, 0, attrLocs);
 	meshGLVAOInitialize(&meshW, 1, sdwProg.attrLocs);
 	meshDestroy(&mesh);
 	if (meshInitializeCapsule(&mesh, 1.0, 10.0, 1, 8) != 0)
 		return 10;
+	printf("got capsule\n");
 	meshGLInitialize(&meshT, &mesh, 3, attrDims, 2);
 	meshGLVAOInitialize(&meshT, 0, attrLocs);
 	meshGLVAOInitialize(&meshT, 1, sdwProg.attrLocs);
 	meshDestroy(&mesh);
 	if (meshInitializeSphere(&mesh, 5.0, 8, 16) != 0)
 		return 11;
+	printf("init mesh sphere\n");
 	meshGLInitialize(&meshL, &mesh, 3, attrDims, 2);
 	meshGLVAOInitialize(&meshL, 0, attrLocs);
 	meshGLVAOInitialize(&meshL, 1, sdwProg.attrLocs);
@@ -207,6 +214,7 @@ int initializeScene(void) {
 		return 13;
 	if (sceneInitialize(&nodeH, 3, 1, &meshH, &nodeV, NULL) != 0)
 		return 12;
+	printf("got scenes inited\n");
 	GLdouble trans[3] = {40.0, 28.0, 5.0};
 	sceneSetTranslation(&nodeT, trans);
 	vecSet(3, trans, 0.0, 0.0, 7.0);
@@ -218,6 +226,7 @@ int initializeScene(void) {
 	sceneSetUniform(&nodeL, unif);
 	vecSet(3, unif, 1.0, 1.0, 1.0);
 	sceneSetUniform(&nodeW, unif);
+	printf("got unif\n");
 	texTexture *tex;
 	tex = &texH;
 	sceneSetTexture(&nodeH, &tex);
@@ -229,6 +238,7 @@ int initializeScene(void) {
 	sceneSetTexture(&nodeT, &tex);
 	tex = &texL;
 	sceneSetTexture(&nodeL, &tex);
+	printf("got textures 2\n");
 	return 0;
 }
 
@@ -351,6 +361,7 @@ int initializeShaderProgram(void) {
 }
 
 void render(void) {
+	printf("rendering\n");
 	GLdouble identity[4][4];
 	mat44Identity(identity);
 	/* Save the viewport transformation. */
@@ -419,14 +430,19 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    printf("initialization\n");
     if (initializeShaderProgram() != 0)
     	return 3;
+    printf("got shaders\n");
     /* Initialize the shadow mapping before the meshes. Why? */
 	if (initializeCameraLight() != 0)
 		return 4;
+	printf("got light\n");
     if (initializeScene() != 0)
     	return 5;
+    printf("got scene\n");
     while (glfwWindowShouldClose(window) == 0) {
+    	printf("running\n");
     	oldTime = newTime;
     	newTime = getTime();
     	if (floor(newTime) - floor(oldTime) >= 1.0)

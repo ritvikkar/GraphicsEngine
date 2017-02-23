@@ -157,8 +157,8 @@ matrix is the 4x4 identity matrix. Loads the modeling transformation into
 modelingLoc. The attribute information exists to be passed to meshGLRender. The 
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
-                    GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-                    GLuint vaoIndex, GLint textureLocs[]) {
+        GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
+        GLuint vaoIndex, GLint textureLocs[]) {
     
     if (node == NULL) { 
         return; 
