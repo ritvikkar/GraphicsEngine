@@ -49,7 +49,7 @@ attribute structure. */
 shadowProgram sdwProg;
 /* We need one shadow map per shadow-casting light. */
 lightLight lightA, lightB;
-shadowMap sdwMap;
+shadowMap sdwMapA;
 /* The main shader program has extra hooks for shadowing. */
 GLuint program;
 GLint viewingLoc, modelingLoc;
@@ -58,7 +58,7 @@ GLint attrLocs[3];
 GLint lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, lightACosLoc;
 GLint lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, lightBCosLoc;
 GLint camPosLoc;
-GLint viewingSdwLoc, textureSdwLoc;
+GLint viewingSdwALoc, textureSdwALoc;
 
 void handleError(int error, const char *description) {
 	fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -275,7 +275,7 @@ int initializeCameraLight(void) {
 	lightSetType(&lightB, lightSPOT);
 	vecSet(3, vec, 45.0, 30.0, 20.0);
 	lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
-	vecSet(3, vec, 1.0, 1.0, 1.0);
+	vecSet(3, vec, 1.0, 0.5, 0.7);
 	lightSetColor(&lightB, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
 	lightSetAttenuation(&lightB, vec);
@@ -284,7 +284,7 @@ int initializeCameraLight(void) {
 	/* Configure shadow mapping. */
 	if (shadowProgramInitialize(&sdwProg, 3) != 0)
 		return 1;
-	if (shadowMapInitialize(&sdwMap, 1024, 1024) != 0)
+	if (shadowMapInitialize(&sdwMapA, 1024, 1024) != 0)
 		return 2;
 	return 0;
 }
@@ -390,8 +390,13 @@ int initializeShaderProgram(void) {
 		lightAAttLoc = glGetUniformLocation(program, "lightAAtt");
 		lightADirLoc = glGetUniformLocation(program, "lightAAim");
 		lightACosLoc = glGetUniformLocation(program, "lightACos");
-		viewingSdwLoc = glGetUniformLocation(program, "viewingSdw");
-		textureSdwLoc = glGetUniformLocation(program, "textureSdw");
+		lightBPosLoc = glGetUniformLocation(program, "lightBPos");
+		lightBColLoc = glGetUniformLocation(program, "lightBCol");
+		lightBAttLoc = glGetUniformLocation(program, "lightBAtt");
+		lightBDirLoc = glGetUniformLocation(program, "lightBAim");
+		lightBCosLoc = glGetUniformLocation(program, "lightBCos");		
+		viewingSdwALoc = glGetUniformLocation(program, "viewingSdw");
+		textureSdwALoc = glGetUniformLocation(program, "textureSdw");
 	}
 	return (program == 0);
 }
@@ -405,7 +410,7 @@ void render(void) {
 	/* For each shadow-casting light, render its shadow map using minimal 
 	uniforms and textures. */
 	GLint sdwTextureLocs[1] = {-1};
-	shadowMapRender(&sdwMap, &sdwProg, &lightA, -100.0, -1.0);
+	shadowMapRender(&sdwMapA, &sdwProg, &lightA, -100.0, -1.0);
 	sceneRender(&nodeH, identity, sdwProg.modelingLoc, 0, NULL, NULL, 1, 
 		sdwTextureLocs);
 	/* Finish preparing the shadow maps, restore the viewport, and begin to 
@@ -422,7 +427,9 @@ void render(void) {
 	For each shadow-casting light, we must also connect its shadow map. */
 	lightRender(&lightA, lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, 
 		lightACosLoc);
-	shadowRender(&sdwMap, viewingSdwLoc, GL_TEXTURE7, 7, textureSdwLoc);
+	lightRender(&lightB, lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, 
+		lightBCosLoc);
+	shadowRender(&sdwMapA, viewingSdwALoc, GL_TEXTURE7, 7, textureSdwALoc);
 	GLuint unifDims[1] = {3};
 	sceneRender(&nodeH, identity, modelingLoc, 1, unifDims, unifLocs, 0, 
 		textureLocs);
@@ -489,7 +496,7 @@ int main(void) {
     }
     /* Deallocate more resources than ever. */
     shadowProgramDestroy(&sdwProg);
-    shadowMapDestroy(&sdwMap);
+    shadowMapDestroy(&sdwMapA);
     glDeleteProgram(program);
     destroyScene();
 	glfwDestroyWindow(window);
