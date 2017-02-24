@@ -25,10 +25,10 @@ double getTime(void) {
 #define GLFW_KEY_ZOOM_IN 334
 #define GLFW_KEY_ZOOM_OUT 333
 
-#define GLFW_KEY_LIGHT_LEFT 324
-#define GLFW_KEY_LIGHT_RIGHT 326
-#define GLFW_KEY_LIGHT_UP 328
-#define GLFW_KEY_LIGHT_DOWN 325
+#define GLFW_KEY_NUMPAD_4 324
+#define GLFW_KEY_NUMPAD_6 326
+#define GLFW_KEY_NUMPAD_8 328
+#define GLFW_KEY_NUMPAD_5 325
 
 #include "500shader.c"
 #include "530vector.c"
@@ -93,23 +93,23 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
 			camAddDistance(&cam, -0.5);
 		else if (key == GLFW_KEY_ZOOM_OUT)
 			camAddDistance(&cam, 0.5);
-		else if (key == GLFW_KEY_LIGHT_RIGHT) {
+		else if (key == GLFW_KEY_NUMPAD_6) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[1] += 1.0;
 			lightSetTranslation(&lightA, vec);
-		} else if (key == GLFW_KEY_LIGHT_LEFT) {
+		} else if (key == GLFW_KEY_NUMPAD_4) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[1] -= 1.0;
 			lightSetTranslation(&lightA, vec);
 		}
-		else if (key == GLFW_KEY_LIGHT_DOWN) {
+		else if (key == GLFW_KEY_NUMPAD_5) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[0] += 1.0;
 			lightSetTranslation(&lightA, vec);
-		} else if (key == GLFW_KEY_LIGHT_UP) {
+		} else if (key == GLFW_KEY_NUMPAD_8) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[0] -= 1.0;
@@ -453,7 +453,7 @@ void render(void) {
 	lightRender(&lightB, lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, 
 		lightBCosLoc);
 	shadowRender(&sdwMapA, viewingSdwALoc, GL_TEXTURE7, 7, textureSdwALoc);
-	shadowRender(&sdwMapB, viewingSdwBLoc, GL_TEXTURE8, 7, textureSdwBLoc);	
+	shadowRender(&sdwMapB, viewingSdwBLoc, GL_TEXTURE8, 8, textureSdwBLoc);	
 	GLuint unifDims[1] = {3};
 	sceneRender(&nodeH, identity, modelingLoc, 1, unifDims, unifLocs, 0, 
 		textureLocs);
