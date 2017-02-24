@@ -49,13 +49,14 @@ attribute structure. */
 shadowProgram sdwProg;
 /* We need one shadow map per shadow-casting light. */
 lightLight lightA, lightB;
-shadowMap sdwMapA;
+shadowMap sdwMap;
 /* The main shader program has extra hooks for shadowing. */
 GLuint program;
 GLint viewingLoc, modelingLoc;
 GLint unifLocs[1], textureLocs[1];
 GLint attrLocs[3];
 GLint lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, lightACosLoc;
+GLint lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, lightBCosLoc;
 GLint camPosLoc;
 GLint viewingSdwLoc, textureSdwLoc;
 
@@ -273,7 +274,7 @@ int initializeCameraLight(void) {
 	/* Configure shadow mapping. */
 	if (shadowProgramInitialize(&sdwProg, 3) != 0)
 		return 1;
-	if (shadowMapInitialize(&sdwMapA, 1024, 1024) != 0)
+	if (shadowMapInitialize(&sdwMap, 1024, 1024) != 0)
 		return 2;
 	return 0;
 }
@@ -375,7 +376,7 @@ void render(void) {
 	/* For each shadow-casting light, render its shadow map using minimal 
 	uniforms and textures. */
 	GLint sdwTextureLocs[1] = {-1};
-	shadowMapRender(&sdwMapA, &sdwProg, &lightA, -100.0, -1.0);
+	shadowMapRender(&sdwMap, &sdwProg, &lightA, -100.0, -1.0);
 	sceneRender(&nodeH, identity, sdwProg.modelingLoc, 0, NULL, NULL, 1, 
 		sdwTextureLocs);
 	/* Finish preparing the shadow maps, restore the viewport, and begin to 
@@ -392,7 +393,7 @@ void render(void) {
 	For each shadow-casting light, we must also connect its shadow map. */
 	lightRender(&lightA, lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, 
 		lightACosLoc);
-	shadowRender(&sdwMapA, viewingSdwLoc, GL_TEXTURE7, 7, textureSdwLoc);
+	shadowRender(&sdwMap, viewingSdwLoc, GL_TEXTURE7, 7, textureSdwLoc);
 	GLuint unifDims[1] = {3};
 	sceneRender(&nodeH, identity, modelingLoc, 1, unifDims, unifLocs, 0, 
 		textureLocs);
@@ -459,7 +460,7 @@ int main(void) {
     }
     /* Deallocate more resources than ever. */
     shadowProgramDestroy(&sdwProg);
-    shadowMapDestroy(&sdwMapA);
+    shadowMapDestroy(&sdwMap);
     glDeleteProgram(program);
     destroyScene();
 	glfwDestroyWindow(window);
