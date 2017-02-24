@@ -49,7 +49,7 @@ attribute structure. */
 shadowProgram sdwProg;
 /* We need one shadow map per shadow-casting light. */
 lightLight lightA, lightB;
-shadowMap sdwMapA;
+shadowMap sdwMapA, sdwMapB;
 /* The main shader program has extra hooks for shadowing. */
 GLuint program;
 GLint viewingLoc, modelingLoc;
@@ -59,6 +59,8 @@ GLint lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, lightACosLoc;
 GLint lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, lightBCosLoc;
 GLint camPosLoc;
 GLint viewingSdwALoc, textureSdwALoc;
+GLint viewingSdwBLoc, textureSdwBLoc;
+
 
 void handleError(int error, const char *description) {
 	fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -274,7 +276,7 @@ int initializeCameraLight(void) {
 
 	lightSetType(&lightB, lightSPOT);
 	vecSet(3, vec, 45.0, 30.0, 20.0);
-	lightShineFrom(&lightB, vec, M_PI * 1.0 / 4.0, M_PI * 3.0 / 4.0);
+	lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
 	vecSet(3, vec, 1.0, 0.5, 0.7);
 	lightSetColor(&lightB, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
@@ -286,6 +288,8 @@ int initializeCameraLight(void) {
 		return 1;
 	if (shadowMapInitialize(&sdwMapA, 1024, 1024) != 0)
 		return 2;
+	if (shadowMapInitialize(&sdwMapB, 1024, 1024) != 0)
+		return 2;	
 	return 0;
 }
 
@@ -295,14 +299,16 @@ int initializeShaderProgram(void) {
 		#version 140\n\
 		uniform mat4 viewing;\
 		uniform mat4 modeling;\
-		uniform mat4 viewingSdw;\
+		uniform mat4 viewingSdwA;\
+		uniform mat4 viewingSdwB;\
 		in vec3 position;\
 		in vec2 texCoords;\
 		in vec3 normal;\
 		out vec3 fragPos;\
 		out vec3 normalDir;\
 		out vec2 st;\
-		out vec4 fragSdw;\
+		out vec4 fragSdwA;\
+		out vec4 fragSdwB;\
 		void main(void) {\
 			mat4 scaleBias = mat4(\
 				0.5, 0.0, 0.0, 0.0, \
@@ -311,7 +317,8 @@ int initializeShaderProgram(void) {
 				0.5, 0.5, 0.5, 1.0);\
 			vec4 worldPos = modeling * vec4(position, 1.0);\
 			gl_Position = viewing * worldPos;\
-			fragSdw = scaleBias * viewingSdw * worldPos;\
+			fragSdwA = scaleBias * viewingSdwA * worldPos;\
+			fragSdwB = scaleBias * viewingSdwB * worldPos;\
 			fragPos = vec3(worldPos);\
 			normalDir = vec3(modeling * vec4(normal, 0.0));\
 			st = texCoords;\
@@ -331,11 +338,13 @@ int initializeShaderProgram(void) {
 		uniform vec3 lightBAtt;\
 		uniform vec3 lightBAim;\
 		uniform float lightBCos;\
-		uniform sampler2DShadow textureSdw;\
+		uniform sampler2DShadow textureSdwA;\
+		uniform sampler2DShadow textureSdwB;\
 		in vec3 fragPos;\
 		in vec3 normalDir;\
 		in vec2 st;\
-		in vec4 fragSdw;\
+		in vec4 fragSdwA;\
+		in vec4 fragSdwB;\
 		out vec4 fragColor;\
 		void main(void) {\
 			vec3 diffuse = vec3(texture(texture0, st));\
@@ -362,17 +371,22 @@ int initializeShaderProgram(void) {
                 diffAInt = ambInt;\
             if (diffBInt <= ambInt)\
                 diffBInt = ambInt;\
-			float sdw = textureProj(textureSdw, fragSdw);\
-			diffAInt *= sdw;\
-			specAInt *= sdw;\
-			diffBInt *= sdw;\
-			specBInt *= sdw;\
+			float sdwA = textureProj(textureSdwA, fragSdwA);\
+			float sdwB = textureProj(textureSdwB, fragSdwB);\
+			diffAInt *= sdwA;\
+			specAInt *= sdwA;\
+			diffBInt *= sdwB;\
+			specBInt *= sdwB;\
 			vec3 diffARefl = max(0.2, diffAInt) * lightACol * diffuse;\
 			vec3 diffBRefl = max(0.2, diffBInt) * lightBCol * diffuse;\
             float shininess = 64.0;\
             vec3 specARefl = pow(specAInt / aA, shininess) * lightACol * specular;\
             vec3 specBRefl = pow(specBInt / aB, shininess) * lightBCol * specular;\
-			fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
+			if (cosAGam >= lightACos) {\
+				fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
+            } else {\
+				fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
+            }\
 		}";
 	program = makeProgram(vertexCode, fragmentCode);
 	if (program != 0) {
@@ -395,8 +409,10 @@ int initializeShaderProgram(void) {
 		lightBAttLoc = glGetUniformLocation(program, "lightBAtt");
 		lightBDirLoc = glGetUniformLocation(program, "lightBAim");
 		lightBCosLoc = glGetUniformLocation(program, "lightBCos");		
-		viewingSdwALoc = glGetUniformLocation(program, "viewingSdw");
-		textureSdwALoc = glGetUniformLocation(program, "textureSdw");
+		viewingSdwALoc = glGetUniformLocation(program, "viewingSdwA");
+		textureSdwALoc = glGetUniformLocation(program, "textureSdwA");
+		viewingSdwBLoc = glGetUniformLocation(program, "viewingSdwB");
+		textureSdwBLoc = glGetUniformLocation(program, "textureSdwB");		
 	}
 	return (program == 0);
 }
@@ -409,13 +425,20 @@ void render(void) {
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	/* For each shadow-casting light, render its shadow map using minimal 
 	uniforms and textures. */
-	GLint sdwTextureLocs[1] = {-1};
+	GLint sdwTextureLocsA[1] = {-1};
 	shadowMapRender(&sdwMapA, &sdwProg, &lightA, -100.0, -1.0);
 	sceneRender(&nodeH, identity, sdwProg.modelingLoc, 0, NULL, NULL, 1, 
-		sdwTextureLocs);
+		sdwTextureLocsA);
+
+	GLint sdwTextureLocsB[1] = {-1};
+	shadowMapRender(&sdwMapB, &sdwProg, &lightB, -100.0, -1.0);
+	sceneRender(&nodeH, identity, sdwProg.modelingLoc, 0, NULL, NULL, 1, 
+		sdwTextureLocsB);
+
 	/* Finish preparing the shadow maps, restore the viewport, and begin to 
 	render the scene. */
 	shadowMapUnrender();
+	
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
@@ -430,11 +453,13 @@ void render(void) {
 	lightRender(&lightB, lightBPosLoc, lightBColLoc, lightBAttLoc, lightBDirLoc, 
 		lightBCosLoc);
 	shadowRender(&sdwMapA, viewingSdwALoc, GL_TEXTURE7, 7, textureSdwALoc);
+	shadowRender(&sdwMapB, viewingSdwBLoc, GL_TEXTURE8, 7, textureSdwBLoc);	
 	GLuint unifDims[1] = {3};
 	sceneRender(&nodeH, identity, modelingLoc, 1, unifDims, unifLocs, 0, 
 		textureLocs);
 	/* For each shadow-casting light, turn it off when finished rendering. */
 	shadowUnrender(GL_TEXTURE7);
+	shadowUnrender(GL_TEXTURE8);	
 }
 
 int main(void) {
@@ -497,6 +522,7 @@ int main(void) {
     /* Deallocate more resources than ever. */
     shadowProgramDestroy(&sdwProg);
     shadowMapDestroy(&sdwMapA);
+    shadowMapDestroy(&sdwMapB);
     glDeleteProgram(program);
     destroyScene();
 	glfwDestroyWindow(window);
