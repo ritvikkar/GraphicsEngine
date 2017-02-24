@@ -124,6 +124,7 @@ int initializeScene(void) {
         return 5;
     if (sceneInitialize(&rootNode, 2, &rootMesh, 2, &childNode, &siblingNode) != 0)
         return 6;
+    
     /* Customize the uniforms. */
     GLdouble trans[3] = {1.0, 0.0, 0.0};
     sceneSetTranslation(&childNode, trans);

@@ -23,8 +23,9 @@ struct sceneNode {
 /* Initializes a sceneNode struct. The translation and rotation are initialized 
 to trivial values. The user must remember to call sceneDestroy or 
 sceneDestroyRecursively when finished. Returns 0 if no error occurred. */
-int sceneInitialize(sceneNode *node, GLuint unifDim, GLuint texNum, 
-        meshGLMesh *mesh, sceneNode *firstChild, sceneNode *nextSibling) {
+int sceneInitialize(sceneNode *node, GLuint unifDim, GLuint texNum,
+                    meshGLMesh *mesh, sceneNode *firstChild,
+                    sceneNode *nextSibling) {
     node->unif = (GLdouble *)malloc(unifDim * sizeof(GLdouble) 
                 + texNum * sizeof(texTexture *));
     
@@ -63,13 +64,15 @@ void sceneSetOneUniform(sceneNode *node, int index, double unif) {
 }
 
 /* Copies texture from node->tex into texList. */
-void sceneSetTexture(sceneNode *node, texTexture **texList) {
-  node->tex = texList;
+void sceneSetTexture(sceneNode *node, texTexture *texList[]) {
+    for (GLuint i = 0; i < node->texNum; i++) {
+        node->tex[i] = texList[i];
+    }
 }
 
 /* Sets one texture in the node, based on its index in the tex array. */
 void sceneSetOneTexture(sceneNode *node, int index, texTexture *tex) {
-  node->tex[index] = tex;
+    node->tex[index] = tex;
 }
 
 /* Calls sceneDestroy recursively on the node's descendants and younger 
@@ -157,8 +160,8 @@ matrix is the 4x4 identity matrix. Loads the modeling transformation into
 modelingLoc. The attribute information exists to be passed to meshGLRender. The 
 uniform information is analogous, but sceneRender loads it, not meshGLRender. */
 void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc, 
-        GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
-        GLuint vaoIndex, GLint textureLocs[]) {
+                    GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
+                    GLuint vaoIndex, GLint textureLocs[]) {
     
     if (node == NULL) { 
         return; 
