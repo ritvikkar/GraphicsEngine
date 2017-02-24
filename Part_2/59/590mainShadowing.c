@@ -271,6 +271,16 @@ int initializeCameraLight(void) {
 	vecSet(3, vec, 1.0, 0.0, 0.0);
 	lightSetAttenuation(&lightA, vec);
 	lightSetSpotAngle(&lightA, M_PI / 3.0);
+
+	lightSetType(&lightB, lightSPOT);
+	vecSet(3, vec, 45.0, 30.0, 20.0);
+	lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
+	vecSet(3, vec, 1.0, 1.0, 1.0);
+	lightSetColor(&lightB, vec);
+	vecSet(3, vec, 1.0, 0.0, 0.0);
+	lightSetAttenuation(&lightB, vec);
+	lightSetSpotAngle(&lightB, M_PI / 3.0);
+
 	/* Configure shadow mapping. */
 	if (shadowProgramInitialize(&sdwProg, 3) != 0)
 		return 1;
@@ -316,6 +326,11 @@ int initializeShaderProgram(void) {
 		uniform vec3 lightAAtt;\
 		uniform vec3 lightAAim;\
 		uniform float lightACos;\
+		uniform vec3 lightBPos;\
+		uniform vec3 lightBCol;\
+		uniform vec3 lightBAtt;\
+		uniform vec3 lightBAim;\
+		uniform float lightBCos;\
 		uniform sampler2DShadow textureSdw;\
 		in vec3 fragPos;\
 		in vec3 normalDir;\
@@ -325,25 +340,39 @@ int initializeShaderProgram(void) {
 		void main(void) {\
 			vec3 diffuse = vec3(texture(texture0, st));\
             vec3 norDir = normalize(normalDir);\
-			vec3 litDir = normalize(lightAPos - fragPos);\
+			vec3 litADir = normalize(lightAPos - fragPos);\
+			vec3 litBDir = normalize(lightBPos - fragPos);\
             vec3 camDir = normalize(camPos - fragPos);\
-            vec3 aimDir = normalize(lightAAim);\
-            vec3 refDir = 2.0 * dot(litDir, norDir) * norDir - litDir;\
-            float d = distance(lightAPos, fragPos);\
-            float a = lightAAtt[0] + lightAAtt[1] * d + lightAAtt[2] * d * d;\
-            float diffInt = dot(norDir, litDir) / a;\
-            float specInt = dot(refDir, camDir);\
-            float cosGam = dot(aimDir,-1.0 * litDir);\
+            vec3 aimADir = normalize(lightAAim);\
+            vec3 aimBDir = normalize(lightBAim);\
+            vec3 refADir = 2.0 * dot(litADir, norDir) * norDir - litADir;\
+            vec3 refBDir = 2.0 * dot(litBDir, norDir) * norDir - litBDir;\
+            float dA = distance(lightAPos, fragPos);\
+            float dB = distance(lightBPos, fragPos);\
+            float aA = lightAAtt[0] + lightAAtt[1] * dA + lightAAtt[2] * dA * dA;\
+            float aB = lightBAtt[0] + lightBAtt[1] * dB + lightBAtt[2] * dB * dB;\
+            float diffAInt = dot(norDir, litADir) / aA;\
+            float diffBInt = dot(norDir, litBDir) / aB;\
+            float specAInt = dot(refADir, camDir);\
+            float specBInt = dot(refBDir, camDir);\
+            float cosAGam = dot(aimADir,-1.0 * litADir);\
+            float cosBGam = dot(aimBDir,-1.0 * litBDir);\
             float ambInt = 0.3;\
-            if (diffInt <= ambInt)\
-                diffInt = ambInt;\
+            if (diffAInt <= ambInt)\
+                diffAInt = ambInt;\
+            if (diffBInt <= ambInt)\
+                diffBInt = ambInt;\
 			float sdw = textureProj(textureSdw, fragSdw);\
-			diffInt *= sdw;\
-			specInt *= sdw;\
-			vec3 diffRefl = max(0.2, diffInt) * lightACol * diffuse;\
+			diffAInt *= sdw;\
+			specAInt *= sdw;\
+			diffBInt *= sdw;\
+			specBInt *= sdw;\
+			vec3 diffARefl = max(0.2, diffAInt) * lightACol * diffuse;\
+			vec3 diffBRefl = max(0.2, diffBInt) * lightBCol * diffuse;\
             float shininess = 64.0;\
-            vec3 specRefl = pow(specInt / a, shininess) * lightACol * specular;\
-			fragColor = vec4(diffRefl + specRefl, 1.0);\
+            vec3 specARefl = pow(specAInt / aA, shininess) * lightACol * specular;\
+            vec3 specBRefl = pow(specBInt / aB, shininess) * lightBCol * specular;\
+			fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
 		}";
 	program = makeProgram(vertexCode, fragmentCode);
 	if (program != 0) {
