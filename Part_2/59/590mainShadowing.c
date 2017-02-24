@@ -274,7 +274,7 @@ int initializeCameraLight(void) {
 
 	lightSetType(&lightB, lightSPOT);
 	vecSet(3, vec, 45.0, 30.0, 20.0);
-	lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
+	lightShineFrom(&lightB, vec, M_PI * 1.0 / 4.0, M_PI * 3.0 / 4.0);
 	vecSet(3, vec, 1.0, 0.5, 0.7);
 	lightSetColor(&lightB, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
