@@ -1,5 +1,5 @@
 /*
- * 540matrix.c
+ * 590matrix.c
  * by Ritvik Kar & Martin Green
  * CS 311: Computer Graphics
 */
@@ -321,9 +321,9 @@ void mat44Perspective(GLdouble left, GLdouble right, GLdouble bottom, GLdouble t
 
     proj[1][1] = (-2 * near) / (top - bottom);
     proj[1][2] = (top + bottom) / (top - bottom);
-
-    proj[2][3] = (-2 * near * far) / (near - far);
+    
     proj[2][2] = -1 * (-near - far) / (near - far);
+    proj[2][3] = -1 * (2 * near * far) / (near - far);
 
     proj[3][2] = -1.0;
 }
