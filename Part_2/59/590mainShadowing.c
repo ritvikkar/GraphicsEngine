@@ -123,13 +123,13 @@ midway through, then does not properly deallocate all resources. But that's
 okay, because the program terminates almost immediately after this function 
 returns. */
 int initializeScene(void) {
-	if (texInitializeFile(&texH, "grass.jpg", GL_LINEAR, GL_LINEAR, 
+	if (texInitializeFile(&texH, "ground.jpg", GL_LINEAR, GL_LINEAR, 
     		GL_REPEAT, GL_REPEAT) != 0)
     	return 1;
-    if (texInitializeFile(&texV, "granite.jpg", GL_LINEAR, GL_LINEAR, 
+    if (texInitializeFile(&texV, "mountain.jpg", GL_LINEAR, GL_LINEAR, 
     		GL_REPEAT, GL_REPEAT) != 0)
     	return 2;
-    if (texInitializeFile(&texW, "water.jpg", GL_LINEAR, GL_LINEAR, 
+    if (texInitializeFile(&texW, "lava.jpg", GL_LINEAR, GL_LINEAR, 
     		GL_REPEAT, GL_REPEAT) != 0)
     	return 3;
     if (texInitializeFile(&texT, "trunk.png", GL_LINEAR, GL_LINEAR, 
