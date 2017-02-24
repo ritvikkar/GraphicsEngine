@@ -48,14 +48,14 @@ sceneNode nodeH, nodeV, nodeW, nodeT, nodeL;
 attribute structure. */
 shadowProgram sdwProg;
 /* We need one shadow map per shadow-casting light. */
-lightLight light;
+lightLight lightA, lightB;
 shadowMap sdwMap;
 /* The main shader program has extra hooks for shadowing. */
 GLuint program;
 GLint viewingLoc, modelingLoc;
 GLint unifLocs[1], textureLocs[1];
 GLint attrLocs[3];
-GLint lightPosLoc, lightColLoc, lightAttLoc, lightDirLoc, lightCosLoc;
+GLint lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, lightACosLoc;
 GLint camPosLoc;
 GLint viewingSdwLoc, textureSdwLoc;
 
@@ -92,25 +92,25 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
 			camAddDistance(&cam, 0.5);
 		else if (key == GLFW_KEY_LIGHT_RIGHT) {
 			GLdouble vec[3];
-			vecCopy(3, light.translation, vec);
+			vecCopy(3, lightA.translation, vec);
 			vec[1] += 1.0;
-			lightSetTranslation(&light, vec);
+			lightSetTranslation(&lightA, vec);
 		} else if (key == GLFW_KEY_LIGHT_LEFT) {
 			GLdouble vec[3];
-			vecCopy(3, light.translation, vec);
+			vecCopy(3, lightA.translation, vec);
 			vec[1] -= 1.0;
-			lightSetTranslation(&light, vec);
+			lightSetTranslation(&lightA, vec);
 		}
 		else if (key == GLFW_KEY_LIGHT_DOWN) {
 			GLdouble vec[3];
-			vecCopy(3, light.translation, vec);
+			vecCopy(3, lightA.translation, vec);
 			vec[0] += 1.0;
-			lightSetTranslation(&light, vec);
+			lightASetTranslation(&lightA, vec);
 		} else if (key == GLFW_KEY_LIGHT_UP) {
 			GLdouble vec[3];
-			vecCopy(3, light.translation, vec);
+			vecCopy(3, lightA.translation, vec);
 			vec[0] -= 1.0;
-			lightSetTranslation(&light, vec);
+			lightSetTranslation(&lightA, vec);
 		}
 	}
 }
@@ -262,14 +262,14 @@ int initializeCameraLight(void) {
     GLdouble vec[3] = {30.0, 30.0, 5.0};
 	camSetControls(&cam, camPERSPECTIVE, M_PI / 6.0, 10.0, 768.0, 768.0, 100.0, 
 		M_PI / 4.0, M_PI / 4.0, vec);
-	lightSetType(&light, lightSPOT);
+	lightSetType(&lightA, lightSPOT);
 	vecSet(3, vec, 45.0, 30.0, 20.0);
-	lightShineFrom(&light, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
+	lightShineFrom(&lightA, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
 	vecSet(3, vec, 1.0, 1.0, 1.0);
-	lightSetColor(&light, vec);
+	lightSetColor(&lightA, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
-	lightSetAttenuation(&light, vec);
-	lightSetSpotAngle(&light, M_PI / 3.0);
+	lightSetAttenuation(&lightA, vec);
+	lightSetSpotAngle(&lightA, M_PI / 3.0);
 	/* Configure shadow mapping. */
 	if (shadowProgramInitialize(&sdwProg, 3) != 0)
 		return 1;
@@ -310,11 +310,11 @@ int initializeShaderProgram(void) {
 		uniform sampler2D texture0;\
 		uniform vec3 specular;\
 		uniform vec3 camPos;\
-		uniform vec3 lightPos;\
-		uniform vec3 lightCol;\
-		uniform vec3 lightAtt;\
-		uniform vec3 lightAim;\
-		uniform float lightCos;\
+		uniform vec3 lightAPos;\
+		uniform vec3 lightACol;\
+		uniform vec3 lightAAtt;\
+		uniform vec3 lightAAim;\
+		uniform float lightACos;\
 		uniform sampler2DShadow textureSdw;\
 		in vec3 fragPos;\
 		in vec3 normalDir;\
@@ -324,12 +324,12 @@ int initializeShaderProgram(void) {
 		void main(void) {\
 			vec3 diffuse = vec3(texture(texture0, st));\
             vec3 norDir = normalize(normalDir);\
-			vec3 litDir = normalize(lightPos - fragPos);\
+			vec3 litDir = normalize(lightAPos - fragPos);\
             vec3 camDir = normalize(camPos - fragPos);\
-            vec3 aimDir = normalize(lightAim);\
+            vec3 aimDir = normalize(lightAAim);\
             vec3 refDir = 2.0 * dot(litDir, norDir) * norDir - litDir;\
-            float d = distance(lightPos, fragPos);\
-            float a = lightAtt[0] + lightAtt[1] * d + lightAtt[2] * d * d;\
+            float d = distance(lightAPos, fragPos);\
+            float a = lightAAtt[0] + lightAAtt[1] * d + lightAAtt[2] * d * d;\
             float diffInt = dot(norDir, litDir) / a;\
             float specInt = dot(refDir, camDir);\
             float cosGam = dot(aimDir,-1.0 * litDir);\
@@ -339,9 +339,9 @@ int initializeShaderProgram(void) {
 			float sdw = textureProj(textureSdw, fragSdw);\
 			diffInt *= sdw;\
 			specInt *= sdw;\
-			vec3 diffRefl = max(0.2, diffInt) * lightCol * diffuse;\
+			vec3 diffRefl = max(0.2, diffInt) * lightACol * diffuse;\
             float shininess = 64.0;\
-            vec3 specRefl = pow(specInt / a, shininess) * lightCol * specular;\
+            vec3 specRefl = pow(specInt / a, shininess) * lightACol * specular;\
 			fragColor = vec4(diffRefl + specRefl, 1.0);\
 		}";
 	program = makeProgram(vertexCode, fragmentCode);
@@ -355,11 +355,11 @@ int initializeShaderProgram(void) {
 		unifLocs[0] = glGetUniformLocation(program, "specular");
 		textureLocs[0] = glGetUniformLocation(program, "texture0");
 		camPosLoc = glGetUniformLocation(program, "camPos");
-		lightPosLoc = glGetUniformLocation(program, "lightPos");
-		lightColLoc = glGetUniformLocation(program, "lightCol");
-		lightAttLoc = glGetUniformLocation(program, "lightAtt");
-		lightDirLoc = glGetUniformLocation(program, "lightAim");
-		lightCosLoc = glGetUniformLocation(program, "lightCos");
+		lightAPosLoc = glGetUniformLocation(program, "lightAPos");
+		lightAColLoc = glGetUniformLocation(program, "lightACol");
+		lightAAttLoc = glGetUniformLocation(program, "lightAAtt");
+		lightADirLoc = glGetUniformLocation(program, "lightAAim");
+		lightACosLoc = glGetUniformLocation(program, "lightACos");
 		viewingSdwLoc = glGetUniformLocation(program, "viewingSdw");
 		textureSdwLoc = glGetUniformLocation(program, "textureSdw");
 	}
@@ -375,7 +375,7 @@ void render(void) {
 	/* For each shadow-casting light, render its shadow map using minimal 
 	uniforms and textures. */
 	GLint sdwTextureLocs[1] = {-1};
-	shadowMapRender(&sdwMap, &sdwProg, &light, -100.0, -1.0);
+	shadowMapRender(&sdwMap, &sdwProg, &lightA, -100.0, -1.0);
 	sceneRender(&nodeH, identity, sdwProg.modelingLoc, 0, NULL, NULL, 1, 
 		sdwTextureLocs);
 	/* Finish preparing the shadow maps, restore the viewport, and begin to 
@@ -390,8 +390,8 @@ void render(void) {
 	glUniform3fv(camPosLoc, 1, vec);
 	/* For each light, we have to connect it to the shader program, as always. 
 	For each shadow-casting light, we must also connect its shadow map. */
-	lightRender(&light, lightPosLoc, lightColLoc, lightAttLoc, lightDirLoc, 
-		lightCosLoc);
+	lightRender(&lightA, lightAPosLoc, lightAColLoc, lightAAttLoc, lightADirLoc, 
+		lightACosLoc);
 	shadowRender(&sdwMap, viewingSdwLoc, GL_TEXTURE7, 7, textureSdwLoc);
 	GLuint unifDims[1] = {3};
 	sceneRender(&nodeH, identity, modelingLoc, 1, unifDims, unifLocs, 0, 
