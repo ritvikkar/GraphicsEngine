@@ -105,7 +105,7 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[0] += 1.0;
-			lightASetTranslation(&lightA, vec);
+			lightSetTranslation(&lightA, vec);
 		} else if (key == GLFW_KEY_LIGHT_UP) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
