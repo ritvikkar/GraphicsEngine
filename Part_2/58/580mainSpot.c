@@ -118,11 +118,11 @@ int initializeScene(void) {
     // void meshGLVAOInitialize(meshGLMesh *meshGL, GLuint index, GLint attrLocs[])
 
     /* Initialize scene graph nodes. */
-    if (sceneInitialize(&siblingNode, 2, &siblingMesh, 2, NULL, NULL) != 0)
+    if (sceneInitialize(&siblingNode, 2, 2, &siblingMesh, NULL, NULL) != 0)
         return 4;
-    if (sceneInitialize(&childNode, 2, &childMesh, 2, NULL, NULL) != 0)
+    if (sceneInitialize(&childNode, 2, 2, &childMesh, NULL, NULL) != 0)
         return 5;
-    if (sceneInitialize(&rootNode, 2, &rootMesh, 2, &childNode, &siblingNode) != 0)
+    if (sceneInitialize(&rootNode, 2, 2, &rootMesh, &childNode, &siblingNode) != 0)
         return 6;
     
     /* Customize the uniforms. */
@@ -202,10 +202,10 @@ int initializeShaderProgram(void) {
             float a = lightAtt[0] + lightAtt[1] * d + lightAtt[2] * d * d;\
             float diffInt = dot(norDir, litDir) / a;\
             float specInt = dot(refDir, camDir);\
-            float cosGam = dot(aimDir,-1.0 * litDir);\
+            float cosGam = dot(aimDir, -1.0 * litDir);\
             if (diffInt <= 0.0 || specInt <= 0.0)\
                 specInt = 0.0;\
-            float ambInt = 0.3;\
+            float ambInt = 0.5;\
             if (diffInt <= ambInt)\
                 diffInt = ambInt;\
             vec3 diffLight = diffInt * lightCol * surfCol;\
@@ -214,7 +214,7 @@ int initializeShaderProgram(void) {
             if (cosGam >= halfCos) {\
                 fragColor = vec4(diffLight + specLight, 1.0);\
             } else {\
-                fragColor = vec4(ambInt*diffLight,1.0);\
+                fragColor = vec4(ambInt * diffLight, 1.0);\
             }\
         }";
     program = makeProgram(vertexCode, fragmentCode);

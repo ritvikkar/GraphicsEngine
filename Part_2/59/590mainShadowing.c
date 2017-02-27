@@ -5,7 +5,8 @@
  */
 
 /* On macOS, compile with...
-    clang 590mainShadowing.c /usr/local/gl3w/src/gl3w.o -lglfw -framework OpenGL -framework CoreFoundation
+    clang -o shadow 590mainShadowing.c /usr/local/gl3w/src/gl3w.o 
+-lglfw -framework OpenGL -framework CoreFoundation
 */
 
 #include <stdio.h>
@@ -77,44 +78,86 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
 	int controlIsDown = mods & GLFW_MOD_CONTROL;
 	int altOptionIsDown = mods & GLFW_MOD_ALT;
 	int superCommandIsDown = mods & GLFW_MOD_SUPER;
-	if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+	if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
 		camSwitchProjectionType(&cam);
 	} else if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 
-		if (key == GLFW_KEY_LEFT)
+		if (key == GLFW_KEY_J)
 			camAddTheta(&cam, -0.1);
-		else if (key == GLFW_KEY_RIGHT)
+		else if (key == GLFW_KEY_L)
 			camAddTheta(&cam, 0.1);
-		else if (key == GLFW_KEY_UP)
+		else if (key == GLFW_KEY_I)
 			camAddPhi(&cam, -0.1);
-		else if (key == GLFW_KEY_DOWN)
+		else if (key == GLFW_KEY_K)
 			camAddPhi(&cam, 0.1);
-		else if (key == GLFW_KEY_ZOOM_IN)
+		else if (key == GLFW_KEY_U)
 			camAddDistance(&cam, -0.5);
-		else if (key == GLFW_KEY_ZOOM_OUT)
+		else if (key == GLFW_KEY_O)
 			camAddDistance(&cam, 0.5);
-		else if (key == GLFW_KEY_NUMPAD_6) {
-			GLdouble vec[3];
-			vecCopy(3, lightA.translation, vec);
-			vec[1] += 1.0;
-			lightSetTranslation(&lightA, vec);
-		} else if (key == GLFW_KEY_NUMPAD_4) {
-			GLdouble vec[3];
-			vecCopy(3, lightA.translation, vec);
-			vec[1] -= 1.0;
-			lightSetTranslation(&lightA, vec);
-		}
-		else if (key == GLFW_KEY_NUMPAD_5) {
+
+		else if (key == GLFW_KEY_S) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[0] += 1.0;
 			lightSetTranslation(&lightA, vec);
-		} else if (key == GLFW_KEY_NUMPAD_8) {
+		} else if (key == GLFW_KEY_W) {
 			GLdouble vec[3];
 			vecCopy(3, lightA.translation, vec);
 			vec[0] -= 1.0;
 			lightSetTranslation(&lightA, vec);
+		} else if (key == GLFW_KEY_D) {
+			GLdouble vec[3];
+			vecCopy(3, lightA.translation, vec);
+			vec[1] += 1.0;
+			lightSetTranslation(&lightA, vec);
+		} else if (key == GLFW_KEY_A) {
+			GLdouble vec[3];
+			vecCopy(3, lightA.translation, vec);
+			vec[1] -= 1.0;
+			lightSetTranslation(&lightA, vec);
+		} else if (key == GLFW_KEY_E) {
+			GLdouble vec[3];
+			vecCopy(3, lightA.translation, vec);
+			vec[2] += 1.0;
+			lightSetTranslation(&lightA, vec);
+		} else if (key == GLFW_KEY_Q) {
+			GLdouble vec[3];
+			vecCopy(3, lightA.translation, vec);
+			vec[2] -= 1.0;
+			lightSetTranslation(&lightA, vec);
 		}
+
+		else if (key == GLFW_KEY_G) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[0] += 1.0;
+            lightSetTranslation(&lightB, vec);
+        } else if (key == GLFW_KEY_T) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[0] -= 1.0;
+            lightSetTranslation(&lightB, vec);
+		} else if (key == GLFW_KEY_H) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[1] += 1.0;
+            lightSetTranslation(&lightB, vec);
+        } else if (key == GLFW_KEY_F) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[1] -= 1.0;
+            lightSetTranslation(&lightB, vec);
+        } else if (key == GLFW_KEY_Y) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[2] += 1.0;
+            lightSetTranslation(&lightB, vec);
+        } else if (key == GLFW_KEY_R) {
+            GLdouble vec[3];
+            vecCopy(3, lightB.translation, vec);
+            vec[2] -= 1.0;
+            lightSetTranslation(&lightB, vec);
+        }
 	}
 }
 
@@ -266,18 +309,18 @@ int initializeCameraLight(void) {
 	camSetControls(&cam, camPERSPECTIVE, M_PI / 6.0, 10.0, 768.0, 768.0, 100.0, 
 		M_PI / 4.0, M_PI / 4.0, vec);
 	lightSetType(&lightA, lightSPOT);
-	vecSet(3, vec, 45.0, 30.0, 20.0);
+	vecSet(3, vec, 35.0, 30.0, 30.0);
 	lightShineFrom(&lightA, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
-	vecSet(3, vec, 1.0, 1.0, 1.0);
+	vecSet(3, vec, 1.0, 0.7, 0.7);
 	lightSetColor(&lightA, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
 	lightSetAttenuation(&lightA, vec);
 	lightSetSpotAngle(&lightA, M_PI / 3.0);
 
 	lightSetType(&lightB, lightSPOT);
-	vecSet(3, vec, 45.0, 30.0, 20.0);
+	vecSet(3, vec, 45.0, 40.0, 30.0);
 	lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
-	vecSet(3, vec, 1.0, 0.5, 0.7);
+	vecSet(3, vec, 0.7, 1.0, 0.7);
 	lightSetColor(&lightB, vec);
 	vecSet(3, vec, 1.0, 0.0, 0.0);
 	lightSetAttenuation(&lightB, vec);
@@ -328,16 +371,19 @@ int initializeShaderProgram(void) {
 		uniform sampler2D texture0;\
 		uniform vec3 specular;\
 		uniform vec3 camPos;\
+		\
 		uniform vec3 lightAPos;\
 		uniform vec3 lightACol;\
 		uniform vec3 lightAAtt;\
 		uniform vec3 lightAAim;\
 		uniform float lightACos;\
+		\
 		uniform vec3 lightBPos;\
 		uniform vec3 lightBCol;\
 		uniform vec3 lightBAtt;\
 		uniform vec3 lightBAim;\
 		uniform float lightBCos;\
+		\
 		uniform sampler2DShadow textureSdwA;\
 		uniform sampler2DShadow textureSdwB;\
 		in vec3 fragPos;\
@@ -356,20 +402,23 @@ int initializeShaderProgram(void) {
             vec3 aimBDir = normalize(lightBAim);\
             vec3 refADir = 2.0 * dot(litADir, norDir) * norDir - litADir;\
             vec3 refBDir = 2.0 * dot(litBDir, norDir) * norDir - litBDir;\
+            \
             float dA = distance(lightAPos, fragPos);\
             float dB = distance(lightBPos, fragPos);\
             float aA = lightAAtt[0] + lightAAtt[1] * dA + lightAAtt[2] * dA * dA;\
             float aB = lightBAtt[0] + lightBAtt[1] * dB + lightBAtt[2] * dB * dB;\
+            \
             float diffAInt = dot(norDir, litADir) / aA;\
             float diffBInt = dot(norDir, litBDir) / aB;\
             float specAInt = dot(refADir, camDir);\
             float specBInt = dot(refBDir, camDir);\
-            float cosAGam = dot(aimADir,-1.0 * litADir);\
-            float cosBGam = dot(aimBDir,-1.0 * litBDir);\
+            \
+            float cosAGam = dot(aimADir, -1.0 * litADir);\
+            float cosBGam = dot(aimBDir, -1.0 * litBDir);\
             float ambInt = 0.3;\
-            if (diffAInt <= ambInt)\
+            if (diffAInt < ambInt)\
                 diffAInt = ambInt;\
-            if (diffBInt <= ambInt)\
+            if (diffBInt < ambInt)\
                 diffBInt = ambInt;\
 			float sdwA = textureProj(textureSdwA, fragSdwA);\
 			float sdwB = textureProj(textureSdwB, fragSdwB);\
@@ -377,15 +426,22 @@ int initializeShaderProgram(void) {
 			specAInt *= sdwA;\
 			diffBInt *= sdwB;\
 			specBInt *= sdwB;\
-			vec3 diffARefl = max(0.2, diffAInt) * lightACol * diffuse;\
-			vec3 diffBRefl = max(0.2, diffBInt) * lightBCol * diffuse;\
+			vec3 diffARefl = diffAInt * lightACol * diffuse;\
+			vec3 diffBRefl = diffBInt * lightBCol * diffuse;\
             float shininess = 64.0;\
             vec3 specARefl = pow(specAInt / aA, shininess) * lightACol * specular;\
             vec3 specBRefl = pow(specBInt / aB, shininess) * lightBCol * specular;\
+            \
+            fragColor = vec4(0.0);\
 			if (cosAGam >= lightACos) {\
-				fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
+				fragColor = vec4(diffARefl + specARefl, 1.0);\
             } else {\
-				fragColor = vec4(diffARefl + specARefl + diffBRefl + specBRefl, 1.0);\
+                fragColor = vec4(ambInt * diffARefl, 1.0);\
+            }\
+            if (cosBGam >= lightBCos) {\
+				fragColor += vec4(diffBRefl + specBRefl, 1.0);\
+            } else {\
+                fragColor += vec4(ambInt * diffBRefl, 1.0);\
             }\
 		}";
 	program = makeProgram(vertexCode, fragmentCode);
@@ -463,12 +519,12 @@ void render(void) {
 }
 
 int main(void) {
-	printf("Camera Controls\n");
-	printf("UP:Arrow Up\nDOWN:Arrow Down\nLEFT:Arrow Left\nRIGHT:Arrow Right\n");
-	printf("Light Controls\n");	
-	printf("UP:8\nDOWN:5\nLEFT:4\nRIGHT:6\n");
-	printf("Zoom Controls\n");	
-	printf("IN:+\nOUT:-\n");	
+	// printf("Camera Controls\n");
+	// printf("UP:Arrow Up\nDOWN:Arrow Down\nLEFT:Arrow Left\nRIGHT:Arrow Right\n");
+	// printf("Light Controls\n");	
+	// printf("UP:8\nDOWN:5\nLEFT:4\nRIGHT:6\n");
+	// printf("Zoom Controls\n");	
+	// printf("IN:+\nOUT:-\n");	
 	double oldTime;
 	double newTime = getTime();
     glfwSetErrorCallback(handleError);
