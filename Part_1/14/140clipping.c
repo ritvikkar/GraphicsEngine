@@ -15,7 +15,7 @@ void clipViewPort(renRenderer *ren, double vertex[], double vertexViewPort[]) {
     vecCopy(ren->varyDim-4,&vertex[4],&vertexViewPort[4]);    
 }
 
-/* clipScale takes in two points a,b and finds a new point that */
+/* clipScale takes in two points a,b and finds a new point between them */
 void clipScale(renRenderer *ren, double unif[], texTexture *tex[],
                 double a[], double b[], double newPoint[])
 {
@@ -67,7 +67,7 @@ void clipTwo(renRenderer *ren, double unif[], texTexture *tex[],
  */
 void clipChecker(renRenderer *ren, double unif[], texTexture *tex[], 
 						double a[], double b[], double c[]){
-    //backface skulling
+    //backface culling
     double ba[2], ca[2], xa[2];
     vecSubtract(2,c,a,ca); //c-a
     vecSubtract(2,b,a,ba); //b-a
@@ -83,7 +83,6 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     int clip[3];//array to keep flags for clipping
     clip[0]=clip[1]=clip[2]=0;
 
-
 	//a is clipped
     if (a[renVARYW] <= 0 || a[renVARYZ] > a[renVARYW])
     	clip[0] = 1;
@@ -95,8 +94,6 @@ void clipChecker(renRenderer *ren, double unif[], texTexture *tex[],
     //c is clipped
     if (c[renVARYW] <= 0 || c[renVARYZ] > c[renVARYW])
     	clip[2] = 1;
-
-    
 
     //all vertices are clipped,render nothing
     if (clip[0] == 1 && clip[1] == 1 && clip[2] == 1)

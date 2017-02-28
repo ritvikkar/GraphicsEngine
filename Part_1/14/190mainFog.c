@@ -144,10 +144,12 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
                    unif[renUNIFLIGHTZ] - vary[renVARYWORLDZ]};
 
     vecUnit(3, l, l);
+    vecUnit(3, &vary[renVARYN], &vary[renVARYN]);
+
     double nDotL = vecDot(3, &vary[renVARYN], l);
     double diffInt = fmax(0, nDotL);
 
-    //specular lighting r = 2 ( n - l ) n - l
+    //specular lighting r = (2 ( n . l ) n) - l
     vecScale(3, 2 * nDotL, &vary[renVARYN], &unif[renUNIFREFLECTIONR]);
     vecSubtract(3, &unif[renUNIFREFLECTIONR], l, &unif[renUNIFREFLECTIONR]);
     unif[renUNIFSHINE] = vecDot(3, &unif[renUNIFWORLDCAMX],  &unif[renUNIFREFLECTIONR]);
@@ -174,13 +176,14 @@ void colorPixel(renRenderer *ren, double unif[], texTexture *tex[], double vary[
     double fog[3];
     vecAdd(3,zc,zg,fog);
 
+    //final final color
     vecCopy(3,fog,rgbz);
 }
 
 /* Writes the vary vector, based on the other parameters. */
 void transformVertex(renRenderer *ren, double unif[], double attr[], double vary[]) {
     //world transformations
-    double ATTRXYZ1[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1};
+    double ATTRXYZ1[4] = {attr[renATTRX],attr[renATTRY],attr[renATTRZ],1.0};
     double RtimesXYZ[4];
     mat441Multiply((double(*)[4])(&unif[renUNIFISOMETRY]),ATTRXYZ1,RtimesXYZ);
 

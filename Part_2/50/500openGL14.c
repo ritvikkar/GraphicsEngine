@@ -45,6 +45,7 @@ GLdouble colors[vertNum * 3] = {
 	1.0, 0.0, 1.0,
 	0.0, 1.0, 0.5, 
 	0.0, 0.7, 1.0};
+	
 GLuint triangles[triNum * 3] = {
 	0, 2, 4, 
 	2, 1, 4, 
