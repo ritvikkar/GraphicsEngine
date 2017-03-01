@@ -6,7 +6,7 @@
 
 /* On macOS, compile with...
     clang -o shadow 590mainShadowing.c /usr/local/gl3w/src/gl3w.o 
--lglfw -framework OpenGL -framework CoreFoundation
+-lglfw -framework OpenGL -framework CoreFoundation; ./shadow
 */
 
 #include <stdio.h>
@@ -16,20 +16,6 @@
 #include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <sys/time.h>
-
-double getTime(void) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (double)tv.tv_sec + (double)tv.tv_usec * 0.000001;
-}
-
-#define GLFW_KEY_ZOOM_IN 334
-#define GLFW_KEY_ZOOM_OUT 333
-
-#define GLFW_KEY_NUMPAD_4 324
-#define GLFW_KEY_NUMPAD_6 326
-#define GLFW_KEY_NUMPAD_8 328
-#define GLFW_KEY_NUMPAD_5 325
 
 #include "500shader.c"
 #include "530vector.c"
@@ -45,13 +31,10 @@ camCamera cam;
 texTexture texH, texV, texW, texT, texL;
 meshGLMesh meshH, meshV, meshW, meshT, meshL;
 sceneNode nodeH, nodeV, nodeW, nodeT, nodeL;
-/* We need just one shadow program, because all of our meshes have the same 
-attribute structure. */
 shadowProgram sdwProg;
-/* We need one shadow map per shadow-casting light. */
 lightLight lightA, lightB;
 shadowMap sdwMapA, sdwMapB;
-/* The main shader program has extra hooks for shadowing. */
+
 GLuint program;
 GLint viewingLoc, modelingLoc;
 GLint unifLocs[1], textureLocs[1];
@@ -62,6 +45,11 @@ GLint camPosLoc;
 GLint viewingSdwALoc, textureSdwALoc;
 GLint viewingSdwBLoc, textureSdwBLoc;
 
+double getTime(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec * 0.000001;
+}
 
 void handleError(int error, const char *description) {
     fprintf(stderr, "handleError: %d\n%s\n", error, description);
@@ -72,16 +60,17 @@ void handleResize(GLFWwindow *window, int width, int height) {
     camSetWidthHeight(&cam, width, height);
 }
 
-void handleKey(GLFWwindow *window, int key, int scancode, int action,
-        int mods) {
+void handleKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
     int shiftIsDown = mods & GLFW_MOD_SHIFT;
     int controlIsDown = mods & GLFW_MOD_CONTROL;
     int altOptionIsDown = mods & GLFW_MOD_ALT;
     int superCommandIsDown = mods & GLFW_MOD_SUPER;
+
     if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
         camSwitchProjectionType(&cam);
     } else if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 
+        // Camera Controls
         if (key == GLFW_KEY_J)
             camAddTheta(&cam, -0.1);
         else if (key == GLFW_KEY_L)
@@ -95,6 +84,7 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
         else if (key == GLFW_KEY_O)
             camAddDistance(&cam, 0.5);
 
+        // Light 1 Controls
         else if (key == GLFW_KEY_S) {
             GLdouble vec[3];
             vecCopy(3, lightA.translation, vec);
@@ -127,6 +117,7 @@ void handleKey(GLFWwindow *window, int key, int scancode, int action,
             lightSetTranslation(&lightA, vec);
         }
 
+        // Light 2 Controls
         else if (key == GLFW_KEY_G) {
             GLdouble vec[3];
             vecCopy(3, lightB.translation, vec);
@@ -494,7 +485,7 @@ void render(void) {
     /* Finish preparing the shadow maps, restore the viewport, and begin to 
     render the scene. */
     shadowMapUnrender();
-    
+
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(program);
@@ -519,12 +510,6 @@ void render(void) {
 }
 
 int main(void) {
-    // printf("Camera Controls\n");
-    // printf("UP:Arrow Up\nDOWN:Arrow Down\nLEFT:Arrow Left\nRIGHT:Arrow Right\n");
-    // printf("Light Controls\n");  
-    // printf("UP:8\nDOWN:5\nLEFT:4\nRIGHT:6\n");
-    // printf("Zoom Controls\n");   
-    // printf("IN:+\nOUT:-\n"); 
     double oldTime;
     double newTime = getTime();
     glfwSetErrorCallback(handleError);
@@ -554,14 +539,11 @@ int main(void) {
     }
     fprintf(stderr, "main: OpenGL %s, GLSL %s.\n", 
         glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
-    /* We no longer do glDepthRange(1.0, 0.0). Instead we have changed our 
-    projection matrices. */
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     if (initializeShaderProgram() != 0)
         return 3;
-    /* Initialize the shadow mapping before the meshes. Why? */
     if (initializeCameraLight() != 0)
         return 4;
     if (initializeScene() != 0)
@@ -575,7 +557,7 @@ int main(void) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    /* Deallocate more resources than ever. */
+
     shadowProgramDestroy(&sdwProg);
     shadowMapDestroy(&sdwMapA);
     shadowMapDestroy(&sdwMapB);

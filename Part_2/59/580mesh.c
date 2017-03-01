@@ -20,8 +20,7 @@ struct meshMesh {
 Does not actually fill in those triangles or vertices with useful data. When 
 you are finished with the mesh, you must call meshDestroy to deallocate its 
 backing resources. */
-int meshInitialize(meshMesh *mesh, GLuint triNum, GLuint vertNum, 
-        GLuint attrDim) {
+int meshInitialize(meshMesh *mesh, GLuint triNum, GLuint vertNum, GLuint attrDim) {
     mesh->tri = (GLuint *)malloc(triNum * 3 * sizeof(GLuint) +
         vertNum * attrDim * sizeof(GLdouble));
     if (mesh->tri != NULL) {

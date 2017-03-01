@@ -77,8 +77,7 @@ void texDestroy(texTexture *tex) {
 /* At the start of rendering a frame, the renderer calls this function, to hook 
 the texture into a certain texture unit. textureUnit is something like 
 GL_TEXTURE0. textureUnitIndex would then be 0. */
-void texRender(texTexture *tex, GLenum textureUnit, GLint textureUnitIndex, 
-        GLint textureLoc) {
+void texRender(texTexture *tex, GLenum textureUnit, GLint textureUnitIndex, GLint textureLoc) {
     glActiveTexture(textureUnit);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, tex->openGL);

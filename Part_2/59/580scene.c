@@ -163,9 +163,7 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
                     GLuint unifNum, GLuint unifDims[], GLint unifLocs[], 
                     GLuint vaoIndex, GLint textureLocs[]) {
     
-    if (node == NULL) { 
-        return; 
-    }
+    if (node == NULL) { return; }
 
     /* Set the uniform modeling matrix. */
     GLdouble isometry[4][4];
@@ -248,14 +246,12 @@ void sceneRender(sceneNode *node, GLdouble parent[4][4], GLint modelingLoc,
 
     if (node->firstChild != NULL) {
         sceneRender(node->firstChild, renIsometry, modelingLoc, 
-                    unifNum, unifDims, unifLocs,
-                    vaoIndex, textureLocs);
+            unifNum, unifDims, unifLocs, vaoIndex, textureLocs);
     }
 
     if (node->nextSibling != NULL) {
         sceneRender(node->nextSibling, parent, modelingLoc, 
-                    unifNum, unifDims, unifLocs, 
-                    vaoIndex, textureLocs);
+            unifNum, unifDims, unifLocs, vaoIndex, textureLocs);
     }
 
 }
