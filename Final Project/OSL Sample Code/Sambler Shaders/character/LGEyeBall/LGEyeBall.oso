@@ -1,0 +1,365 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.1
+# options: -o /Users/Martin/Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.oso -I/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader
+shader LGEyeBall
+param	float	DiffuseAmt	0.89999998		%read{118,118} %write{2147483647,-1}
+param	float	SpecularAmt	0.80000001		%read{111,111} %write{2147483647,-1}
+param	float	roughness	0.1		%read{115,115} %write{2147483647,-1}
+param	color	SpecularColor	1 1 1		%read{123,123} %write{0,0} %initexpr
+param	color	IrisColor	0.135289 0.084322996 0.372417		%read{71,71} %write{2147483647,-1}
+param	color	IrisOuterColor	0.403882 0.34394401 0.68276		%read{71,71} %write{2147483647,-1}
+param	color	EyeBallColor	1 1 1		%read{65,66} %write{2147483647,-1}
+param	color	BloodColor	0.80000001 0.050000001 0.050000001		%read{65,65} %write{2147483647,-1}
+param	color	PupilColor	0 0 0		%read{107,107} %write{1,1} %initexpr
+param	float	PupilSize	0.2		%read{20,21} %write{2147483647,-1}
+param	float	IrisSize	1		%read{16,69} %write{2147483647,-1}
+param	float	BloodShotAmt	1		%read{29,29} %write{2147483647,-1}
+param	float	VeinFreq	8		%read{34,34} %write{2147483647,-1}
+param	float	VeinLevel	4		%read{38,38} %write{2147483647,-1}
+param	float	Index	0		%read{13,13} %write{2147483647,-1}
+oparam	closure color	BSDF			%read{125,125} %write{2,125} %initexpr
+global	point	P	%read{3,12} %write{2147483647,-1} %derivs
+global	vector	I	%read{120,120} %write{2147483647,-1}
+global	normal	N	%read{2,116} %write{2147483647,-1}
+local	color	Ct	%read{107,118} %write{106,107}
+local	point	Nf	%read{117,122} %write{116,116}
+local	point	PO	%read{14,96} %write{13,13}
+local	float	i	%read{38,96} %write{37,96}
+local	float	turb	%read{38,97} %write{33,96}
+local	float	newturb	%read{38,63} %write{38,63}
+local	float	freq	%read{38,96} %write{34,96}
+local	float	f2	%read{84,96} %write{81,96}
+local	float	displayed	%read{38,64} %write{35,63}
+local	float	newdisp	%read{38,63} %write{38,63}
+local	color	Cball	%read{106,106} %write{65,66}
+local	color	Ciris	%read{105,106} %write{71,105}
+local	float	irisstat	%read{30,112} %write{19,19}
+local	float	pupilstat	%read{75,107} %write{23,23}
+local	float	bloody	%read{30,33} %write{29,29}
+local	float	tt	%read{19,70} %write{15,15}
+local	float	ks	%read{123,123} %write{111,111}
+local	float	rough	%read{122,122} %write{115,115}
+local	float	twidth	%read{18,22} %write{10,10}
+const	color	$const1	1 1 1		%read{0,0} %write{2147483647,-1}
+const	color	$const2	0 0 0		%read{1,1} %write{2147483647,-1}
+const	string	$const3	"diffuse"		%read{2,117} %write{2147483647,-1}
+temp	float	$tmp1	%read{9,9} %write{5,5}
+temp	float	$tmp2	%read{5,5} %write{4,4}
+const	int	$const4	1		%read{3,83} %write{2147483647,-1}
+temp	float	$tmp3	%read{4,4} %write{3,3} %derivs
+temp	float	$tmp4	%read{9,9} %write{8,8}
+temp	float	$tmp5	%read{8,8} %write{7,7}
+temp	float	$tmp6	%read{7,7} %write{6,6} %derivs
+temp	float	$tmp7	%read{10,10} %write{9,9}
+const	float	$const5	1e-07		%read{10,10} %write{2147483647,-1}
+temp	point	$tmp8	%read{13,13} %write{12,12}
+const	string	$const6	"object"		%read{12,12} %write{2147483647,-1}
+const	string	$const7	"transform"		%read{11,11} %write{2147483647,-1}
+const	string	$const8	"common"		%read{12,12} %write{2147483647,-1}
+temp	float	$tmp9	%read{15,15} %write{14,14}
+const	float	$const9	1		%read{15,114} %write{2147483647,-1}
+const	float	$const10	0.1		%read{16,69} %write{2147483647,-1}
+temp	float	$tmp10	%read{19,19} %write{16,16}
+temp	float	$tmp11	%read{18,18} %write{17,17}
+temp	float	$tmp12	%read{19,19} %write{18,18}
+temp	float	$tmp13	%read{23,23} %write{20,20}
+temp	float	$tmp14	%read{22,22} %write{21,21}
+temp	float	$tmp15	%read{23,23} %write{22,22}
+temp	float	$tmp16	%read{29,29} %write{28,28}
+temp	float	$tmp17	%read{25,25} %write{24,24}
+temp	float	$tmp18	%read{28,28} %write{25,25}
+const	float	$const11	2.5		%read{27,27} %write{2147483647,-1}
+temp	float	$tmp19	%read{27,27} %write{26,26}
+temp	float	$tmp20	%read{28,28} %write{27,27}
+temp	float	$tmp21	%read{31,31} %write{30,30}
+const	float	$const12	0.001		%read{31,31} %write{2147483647,-1}
+temp	int	$tmp22	%read{32,32} %write{31,31}
+const	int	$const13	0		%read{35,79} %write{2147483647,-1}
+temp	int	$tmp23	%read{38,63} %write{38,63}
+temp	int	$tmp24	%read{36,63} %write{37,63}
+temp	int	$tmp25	%read{38,63} %write{38,63}
+temp	int	$tmp26	%read{38,63} %write{38,63}
+temp	float	$tmp27	%read{38,63} %write{38,63}
+temp	float	$tmp28	%read{38,63} %write{38,63}
+temp	point	$tmp29	%read{38,63} %write{38,63}
+temp	point	$tmp30	%read{38,63} %write{38,63}
+const	float	$const15	0		%read{46,99} %write{2147483647,-1}
+temp	float	$tmp31	%read{38,63} %write{38,63}
+const	float	$const17	20		%read{45,86} %write{2147483647,-1}
+temp	point	$tmp32	%read{38,63} %write{38,63}
+temp	float	$tmp33	%read{38,63} %write{38,63}
+const	float	$const18	2		%read{49,109} %write{2147483647,-1}
+temp	float	$tmp34	%read{38,63} %write{38,63}
+temp	float	$tmp35	%read{38,63} %write{38,63}
+const	float	$const19	0.85000002		%read{53,58} %write{2147483647,-1}
+const	float	$const21	10		%read{54,54} %write{2147483647,-1}
+temp	float	$tmp36	%read{38,63} %write{38,63}
+temp	float	$tmp37	%read{38,63} %write{38,63}
+temp	float	$tmp38	%read{38,63} %write{38,63}
+temp	float	$tmp39	%read{38,63} %write{38,63}
+temp	float	$tmp40	%read{38,63} %write{38,63}
+temp	float	$tmp41	%read{65,65} %write{64,64}
+const	float	$const22	0.75		%read{64,113} %write{2147483647,-1}
+temp	float	$tmp42	%read{71,71} %write{70,70}
+temp	float	$tmp43	%read{68,68} %write{67,67}
+const	float	$const23	0.80000001		%read{68,68} %write{2147483647,-1}
+temp	float	$tmp44	%read{70,70} %write{68,68}
+temp	float	$tmp45	%read{70,70} %write{69,69}
+const	float	$const24	0.99989998		%read{72,72} %write{2147483647,-1}
+temp	int	$tmp46	%read{73,73} %write{72,72}
+temp	int	$tmp47	%read{74,78} %write{73,77}
+const	float	$const25	9.9999997e-05		%read{75,75} %write{2147483647,-1}
+temp	int	$tmp48	%read{76,76} %write{75,75}
+temp	int	$tmp49	%read{77,77} %write{76,76}
+const	int	$const26	30		%read{81,81} %write{2147483647,-1}
+const	int	$const27	4		%read{84,84} %write{2147483647,-1}
+temp	int	$tmp50	%read{82,96} %write{83,96}
+temp	float	$tmp51	%read{84,96} %write{84,96}
+temp	point	$tmp52	%read{84,96} %write{84,96}
+temp	point	$tmp53	%read{84,96} %write{84,96}
+temp	float	$tmp54	%read{84,96} %write{84,96}
+temp	point	$tmp55	%read{84,96} %write{84,96}
+temp	float	$tmp56	%read{84,96} %write{84,96}
+temp	float	$tmp57	%read{84,96} %write{84,96}
+temp	float	$tmp58	%read{84,96} %write{84,96}
+temp	color	$tmp59	%read{104,104} %write{103,103}
+temp	float	$tmp60	%read{98,98} %write{97,97}
+temp	color	$tmp61	%read{102,102} %write{98,98}
+temp	color	$tmp62	%read{103,103} %write{99,99}
+temp	color	$tmp63	%read{102,102} %write{100,100}
+const	string	$const28	"clamp"		%read{101,101} %write{2147483647,-1}
+temp	color	$tmp64	%read{103,103} %write{102,102}
+temp	color	$tmp65	%read{105,105} %write{104,104}
+temp	float	$tmp66	%read{109,109} %write{108,108}
+temp	float	$tmp67	%read{110,110} %write{109,109}
+temp	float	$tmp68	%read{111,111} %write{110,110}
+temp	float	$tmp69	%read{113,113} %write{112,112}
+temp	float	$tmp70	%read{114,114} %write{113,113}
+temp	float	$tmp71	%read{115,115} %write{114,114}
+temp	closure color	$tmp72	%read{119,119} %write{117,117}
+temp	color	$tmp73	%read{119,119} %write{118,118}
+temp	closure color	$tmp74	%read{124,124} %write{122,122}
+temp	vector	$tmp75	%read{121,121} %write{120,120}
+temp	vector	$tmp76	%read{122,122} %write{121,121}
+const	string	$const29	"ashikhmin_shirley"		%read{122,122} %write{2147483647,-1}
+temp	color	$tmp77	%read{124,124} %write{123,123}
+temp	closure color	$tmp78	%read{125,125} %write{124,124}
+code SpecularColor
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:59
+#         color IrisColor = color (0.135289, 0.084323, 0.372417),
+	assign		SpecularColor $const1 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{59} %argrw{"wr"}
+code PupilColor
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:64
+#         float PupilSize = 0.2,
+	assign		PupilColor $const2 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{64} %argrw{"wr"}
+code BSDF
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:71
+# {
+	closure		BSDF $const3 N 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{71} %argrw{"wrr"}
+code ___main___
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:90
+#     PO = transform ("object", P) + Index;
+	compref		$tmp3 P $const4 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{90} %argrw{"wrr"}
+	Dx		$tmp2 $tmp3 	%argrw{"wr"} %argderivs{1}
+	abs		$tmp1 $tmp2 	%argrw{"wr"}
+	compref		$tmp6 P $const4 	%argrw{"wrr"}
+	Dy		$tmp5 $tmp6 	%argrw{"wr"} %argderivs{1}
+	abs		$tmp4 $tmp5 	%argrw{"wr"}
+	add		$tmp7 $tmp1 $tmp4 	%argrw{"wrr"}
+	max		twidth $tmp7 $const5 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:91
+# 
+	functioncall	$const7 13 	%line{91} %argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:243
+# point  mix (point  x, point  y, float  a) { return x*(1-a) + y*a; }
+	transform	$tmp8 $const8 $const6 P 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{243} %argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:91
+# 
+	add		PO $tmp8 Index 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{91} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:98
+#     irisstat = smoothstep (IRISSIZE, IRISSIZE+twidth, tt);
+	compref		$tmp9 PO $const4 	%line{98} %argrw{"wrr"}
+	sub		tt $const9 $tmp9 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:99
+#     pupilstat = smoothstep (PUPILSIZE, PUPILSIZE+twidth, tt);
+	mul		$tmp10 IrisSize $const10 	%line{99} %argrw{"wrr"}
+	mul		$tmp11 IrisSize $const10 	%argrw{"wrr"}
+	add		$tmp12 $tmp11 twidth 	%argrw{"wrr"}
+	smoothstep	irisstat $tmp10 $tmp12 tt 	%argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:100
+#     bloody = BloodShotAmt * (smoothstep (-IRISSIZE, 2.5*IRISSIZE, tt));
+	mul		$tmp13 PupilSize $const10 	%line{100} %argrw{"wrr"}
+	mul		$tmp14 PupilSize $const10 	%argrw{"wrr"}
+	add		$tmp15 $tmp14 twidth 	%argrw{"wrr"}
+	smoothstep	pupilstat $tmp13 $tmp15 tt 	%argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:101
+# 
+	mul		$tmp17 IrisSize $const10 	%line{101} %argrw{"wrr"}
+	neg		$tmp18 $tmp17 	%argrw{"wr"}
+	mul		$tmp19 IrisSize $const10 	%argrw{"wrr"}
+	mul		$tmp20 $const11 $tmp19 	%argrw{"wrr"}
+	smoothstep	$tmp16 $tmp18 $tmp20 tt 	%argrw{"wrrr"}
+	mul		bloody BloodShotAmt $tmp16 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:109
+#         turb = bloody;
+	mul		$tmp21 irisstat bloody 	%line{109} %argrw{"wrr"}
+	gt		$tmp22 $tmp21 $const12 	%argrw{"wrr"}
+	if		$tmp22 66 67 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:110
+#         freq = VeinFreq;
+	assign		turb bloody 	%line{110} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:111
+#         displayed = 0;
+	assign		freq VeinFreq 	%line{111} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:112
+#         for (i = 1;  (i <= VeinLevel) && (turb > 0.1);  i += 1) {
+	assign		displayed $const13 	%line{112} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:113
+#             newturb = 1 - abs (snoise(PO*freq + point(0,0,20*freq)));
+	for		$tmp24 38 44 63 64 	%line{113} %argrw{"r"}
+	assign		i $const4 	%argrw{"wr"}
+	le		$tmp23 i VeinLevel 	%argrw{"wrr"}
+	neq		$tmp24 $tmp23 $const13 	%argrw{"wrr"}
+	if		$tmp24 44 44 	%argrw{"r"}
+	gt		$tmp25 turb $const10 	%argrw{"wrr"}
+	neq		$tmp26 $tmp25 $const13 	%argrw{"wrr"}
+	assign		$tmp24 $tmp26 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:114
+#             newdisp = pow (smoothstep (.85, 1, newturb), 10);
+	mul		$tmp29 PO freq 	%line{114} %argrw{"wrr"}
+	mul		$tmp31 $const17 freq 	%argrw{"wrr"}
+	point		$tmp30 $const15 $const15 $tmp31 	%argrw{"wrrr"}
+	add		$tmp32 $tmp29 $tmp30 	%argrw{"wrr"}
+	noise		$tmp28 $tmp32 	%argrw{"wr"}
+	mul		$tmp33 $const18 $tmp28 	%argrw{"wrr"}
+	sub		$tmp34 $tmp33 $const9 	%argrw{"wrr"}
+	abs		$tmp27 $tmp34 	%argrw{"wr"}
+	sub		newturb $const9 $tmp27 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:115
+#             displayed += (1-displayed) * newdisp * smoothstep (.1, .85, turb * turb);
+	smoothstep	$tmp35 $const19 $const9 newturb 	%line{115} %argrw{"wrrr"}
+	pow		newdisp $tmp35 $const21 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:116
+#             turb *= newturb;
+	sub		$tmp36 $const9 displayed 	%line{116} %argrw{"wrr"}
+	mul		$tmp37 $tmp36 newdisp 	%argrw{"wrr"}
+	mul		$tmp39 turb turb 	%argrw{"wrr"}
+	smoothstep	$tmp38 $const10 $const19 $tmp39 	%argrw{"wrrr"}
+	mul		$tmp40 $tmp37 $tmp38 	%argrw{"wrr"}
+	add		displayed displayed $tmp40 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:117
+#             freq *= 2;
+	mul		turb turb newturb 	%line{117} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:118
+#         }
+	mul		freq freq $const18 	%line{118} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:113
+#             newturb = 1 - abs (snoise(PO*freq + point(0,0,20*freq)));
+	add		i i $const9 	%line{113} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:120
+#     }
+	smoothstep	$tmp41 $const15 $const22 displayed 	%line{120} %argrw{"wrrr"}
+	mix		Cball EyeBallColor BloodColor $tmp41 	%argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:123
+# 
+	assign		Cball EyeBallColor 	%line{123} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:125
+#     /* If we're somewhere in the iris, calculate the iris pattern, which is
+	mul		$tmp43 IrisSize $const10 	%line{125} %argrw{"wrr"}
+	mul		$tmp44 $tmp43 $const23 	%argrw{"wrr"}
+	mul		$tmp45 IrisSize $const10 	%argrw{"wrr"}
+	smoothstep	$tmp42 $tmp44 $tmp45 tt 	%argrw{"wrrr"}
+	mix		Ciris IrisColor IrisOuterColor $tmp42 	%argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:129
+#         turb = 0;
+	lt		$tmp46 irisstat $const24 	%line{129} %argrw{"wrr"}
+	neq		$tmp47 $tmp46 $const13 	%argrw{"wrr"}
+	if		$tmp47 78 78 	%argrw{"r"}
+	gt		$tmp48 pupilstat $const25 	%argrw{"wrr"}
+	neq		$tmp49 $tmp48 $const13 	%argrw{"wrr"}
+	assign		$tmp47 $tmp49 	%argrw{"wr"}
+	if		$tmp47 106 106 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:130
+#         freq = 1;
+	assign		turb $const13 	%line{130} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:131
+#         f2 = 30;
+	assign		freq $const4 	%line{131} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:132
+#         for (i = 1;  i <= 4;  i += 1) {
+	assign		f2 $const26 	%line{132} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:133
+#             turb += snoise (PO*f2 + point(0,0,20*f2)) / freq;
+	for		$tmp50 84 85 96 97 	%line{133} %argrw{"r"}
+	assign		i $const4 	%argrw{"wr"}
+	le		$tmp50 i $const27 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:134
+#             freq *= 2;
+	mul		$tmp52 PO f2 	%line{134} %argrw{"wrr"}
+	mul		$tmp54 $const17 f2 	%argrw{"wrr"}
+	point		$tmp53 $const15 $const15 $tmp54 	%argrw{"wrrr"}
+	add		$tmp55 $tmp52 $tmp53 	%argrw{"wrr"}
+	noise		$tmp51 $tmp55 	%argrw{"wr"}
+	mul		$tmp56 $const18 $tmp51 	%argrw{"wrr"}
+	sub		$tmp57 $tmp56 $const9 	%argrw{"wrr"}
+	div		$tmp58 $tmp57 freq 	%argrw{"wrr"}
+	add		turb turb $tmp58 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:135
+#             f2 *= 2;
+	mul		freq freq $const18 	%line{135} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:136
+#         }
+	mul		f2 f2 $const18 	%line{136} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:133
+#             turb += snoise (PO*f2 + point(0,0,20*f2)) / freq;
+	add		i i $const9 	%line{133} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:138
+#     }
+	div		$tmp60 turb $const18 	%line{138} %argrw{"wrr"}
+	assign		$tmp61 $tmp60 	%argrw{"wr"}
+	assign		$tmp62 $const15 	%argrw{"wr"}
+	assign		$tmp63 $const9 	%argrw{"wr"}
+	functioncall	$const28 104 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:143
+# // modification, are permitted provided that the following conditions are
+	min		$tmp64 $tmp61 $tmp63 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{143} %argrw{"wrr"}
+	max		$tmp59 $tmp64 $tmp62 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:138
+#     }
+	sub		$tmp65 $const9 $tmp59 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl"} %line{138} %argrw{"wrr"}
+	mul		Ciris Ciris $tmp65 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:144
+#     Ct = mix (PupilColor, Ct, pupilstat);
+	mix		Ct Ciris Cball irisstat 	%line{144} %argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:145
+# 
+	mix		Ct PupilColor Ct pupilstat 	%line{145} %argrw{"wrrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:148
+#     rough = roughness * (1-0.75*(1-irisstat));
+	sub		$tmp66 $const9 irisstat 	%line{148} %argrw{"wrr"}
+	mul		$tmp67 $const18 $tmp66 	%argrw{"wrr"}
+	add		$tmp68 $const9 $tmp67 	%argrw{"wrr"}
+	mul		ks SpecularAmt $tmp68 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:149
+# 
+	sub		$tmp69 $const9 irisstat 	%line{149} %argrw{"wrr"}
+	mul		$tmp70 $const22 $tmp69 	%argrw{"wrr"}
+	sub		$tmp71 $const9 $tmp70 	%argrw{"wrr"}
+	mul		rough roughness $tmp71 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:155
+#     BSDF = Ct * DiffuseAmt * diffuse(Nf);
+	normalize	Nf N 	%line{155} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:156
+#     BSDF += SpecularColor * ks * ashikhmin_shirley(Nf,-normalize(I),rough,rough);
+	closure		$tmp72 $const3 Nf 	%line{156} %argrw{"wrr"}
+	mul		$tmp73 Ct DiffuseAmt 	%argrw{"wrr"}
+	mul		BSDF $tmp72 $tmp73 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Blender/OSL Shaders/character/LGEyeBall/LGEyeBall.osl:157
+# }
+	normalize	$tmp75 I 	%line{157} %argrw{"wr"}
+	neg		$tmp76 $tmp75 	%argrw{"wr"}
+	closure		$tmp74 $const29 Nf $tmp76 rough rough 	%argrw{"wrrrrr"}
+	mul		$tmp77 SpecularColor ks 	%argrw{"wrr"}
+	mul		$tmp78 $tmp74 $tmp77 	%argrw{"wrr"}
+	add		BSDF BSDF $tmp78 	%argrw{"wrr"}
+	end
