@@ -199,6 +199,7 @@ int initializeScene(void) {
         {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, 
         {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, 
         {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}};
+
     meshMesh mesh, meshLand;
     if (meshInitializeLandscape(&meshLand, 12, 12, 5.0, (double *)zs) != 0)
         return 6;
@@ -311,7 +312,7 @@ int initializeCameraLight(void) {
     lightSetType(&lightB, lightSPOT);
     vecSet(3, vec, 45.0, 40.0, 30.0);
     lightShineFrom(&lightB, vec, M_PI * 3.0 / 4.0, M_PI * 3.0 / 4.0);
-    vecSet(3, vec, 0.7, 1.0, 0.7);
+    vecSet(3, vec, 1.0, 0.07, 0.57);
     lightSetColor(&lightB, vec);
     vecSet(3, vec, 1.0, 0.0, 0.0);
     lightSetAttenuation(&lightB, vec);
