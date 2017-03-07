@@ -1,0 +1,25 @@
+#include "stdosl.h"
+
+shader toon_shader(
+    normal Normal = N,
+    color Highlight = color(1, 1, 0),
+    float HighAngle = 15.0,
+    float Shine = 1,
+    float Mid = 0.5,
+    float MidAngle = 65.0,
+    float Shadow = 0.25,
+    output color Color = color(0, 0, 0))
+{
+    float highValue = cos(radians(clamp(HighAngle, 0, 90)));
+    float midValue  = cos(radians(clamp(MidAngle, 0, 90)));
+  
+    float scalar = abs(dot(-I, Normal));
+  
+    if( scalar > highValue ) {
+        Color = Highlight * Shine;
+    } else  if( scalar > midValue ) {
+        Color = Highlight * Mid;
+    } else {
+        Color = Highlight * Shadow;
+    }
+}
