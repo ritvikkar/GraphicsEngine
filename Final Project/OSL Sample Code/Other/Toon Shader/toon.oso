@@ -1,0 +1,60 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.1
+# options: -o /Users/Martin/Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.oso -I/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader
+shader toon
+param	color	Color_Diffuse	1 0.63999999 0.47		%read{7,7} %write{2147483647,-1}
+param	color	Color_Specular	0.1 0.1 0.1		%read{9,9} %write{2147483647,-1}
+param	color	Color_Shade	0.69999999 0.30000001 0.2		%read{12,12} %write{2147483647,-1}
+param	float	Size_Diffuse	0.89999998		%read{6,6} %write{2147483647,-1}
+param	float	Smooth_Diffuse	0		%read{6,6} %write{2147483647,-1}
+param	float	Size_Specular	0.2		%read{8,8} %write{2147483647,-1}
+param	float	Smooth_Specular	0		%read{8,8} %write{2147483647,-1}
+oparam	closure color	BSDF			%read{2147483647,-1} %write{5,13}
+global	normal	N	%read{6,8} %write{2147483647,-1}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+const	string	$const1	"isdiffuseray"		%read{0,0} %write{2147483647,-1}
+const	string	$const2	"diffuse"		%read{1,1} %write{2147483647,-1}
+const	float	$const3	0.5		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp2	%read{3,3} %write{2,2}
+temp	closure color	$tmp3	%read{5,5} %write{4,4}
+const	string	$const4	"emission"		%read{4,11} %write{2147483647,-1}
+const	float	$const5	0		%read{5,5} %write{2147483647,-1}
+temp	closure color	$tmp4	%read{7,7} %write{6,6}
+const	string	$const6	"diffuse_toon"		%read{6,6} %write{2147483647,-1}
+temp	closure color	$tmp5	%read{10,10} %write{7,7}
+temp	closure color	$tmp6	%read{9,9} %write{8,8}
+const	string	$const7	"glossy_toon"		%read{8,8} %write{2147483647,-1}
+temp	closure color	$tmp7	%read{10,10} %write{9,9}
+temp	closure color	$tmp8	%read{13,13} %write{10,10}
+temp	closure color	$tmp9	%read{12,12} %write{11,11}
+temp	closure color	$tmp10	%read{13,13} %write{12,12}
+code ___main___
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:12
+#         BSDF = 0.0 * emission();
+	functioncall	$const1 2 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl"} %line{12} %argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:599
+# }
+	raytype		$tmp1 $const2 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{599} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:12
+#         BSDF = 0.0 * emission();
+	gt		$tmp2 $tmp1 $const3 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl"} %line{12} %argrw{"wrr"}
+	if		$tmp2 6 14 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:13
+#     } else {
+	closure		$tmp3 $const4 	%line{13} %argrw{"wr"}
+	mul		BSDF $tmp3 $const5 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:15
+#          + Color_Specular * glossy_toon(N, Size_Specular, Smooth_Specular)
+	closure		$tmp4 $const6 N Size_Diffuse Smooth_Diffuse 	%line{15} %argrw{"wrrrr"}
+	mul		$tmp5 $tmp4 Color_Diffuse 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:16
+#          + Color_Shade * emission();
+	closure		$tmp6 $const7 N Size_Specular Smooth_Specular 	%line{16} %argrw{"wrrrr"}
+	mul		$tmp7 $tmp6 Color_Specular 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/toon.osl:17
+#     }
+	add		$tmp8 $tmp5 $tmp7 	%line{17} %argrw{"wrr"}
+	closure		$tmp9 $const4 	%argrw{"wr"}
+	mul		$tmp10 $tmp9 Color_Shade 	%argrw{"wrr"}
+	add		BSDF $tmp8 $tmp10 	%argrw{"wrr"}
+	end

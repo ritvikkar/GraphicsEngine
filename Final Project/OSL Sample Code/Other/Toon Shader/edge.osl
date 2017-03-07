@@ -1,0 +1,9 @@
+shader edge(
+    color Color = 0.0,
+    output closure color BSDF = 0)
+{
+    if ((!iscameraray() && !isglossyray()) || backfacing())
+        BSDF = transparent();
+    else
+        BSDF = Color * emission();
+}

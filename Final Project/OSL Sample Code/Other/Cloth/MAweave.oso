@@ -1,0 +1,293 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.1
+# options: -o /Users/Martin/Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.oso -I/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader
+shader MAweave
+param	vector	Vector	0 0 0		%read{19,25} %write{0,0} %initexpr
+param	color	WarpColor	0.80000001 0 0		%read{72,105} %write{2147483647,-1}
+param	color	WeftColor	0 0.80000001 0		%read{83,94} %write{2147483647,-1}
+param	int	skip	1		%read{3,53} %write{2147483647,-1}
+param	int	underrun	1		%read{1,1} %write{2147483647,-1}
+param	int	overrun	1		%read{1,56} %write{2147483647,-1}
+param	float	WarpWidth	0.80000001		%read{57,57} %write{2147483647,-1}
+param	float	WeftWidth	0.80000001		%read{60,60} %write{2147483647,-1}
+oparam	color	Color	0 0 0		%read{2147483647,-1} %write{72,105}
+oparam	int	Index	0		%read{2147483647,-1} %write{71,104}
+oparam	float	Dist	0		%read{2147483647,-1} %write{74,107}
+local	int	___330_a	%read{7,17} %write{5,16}
+local	int	___330_b	%read{9,16} %write{6,16}
+local	int	ny	%read{3,55} %write{1,1}
+local	int	nx	%read{31,39} %write{18,18}
+local	float	x	%read{32,40} %write{24,24}
+local	float	y	%read{36,47} %write{30,30}
+local	int	ix	%read{53,53} %write{34,34}
+local	int	iy	%read{54,54} %write{38,38}
+local	float	cx	%read{64,106} %write{45,45}
+local	float	cy	%read{75,95} %write{52,52}
+local	int	top	%read{63,63} %write{56,56}
+local	float	lx	%read{59,97} %write{58,58}
+local	float	hx	%read{67,100} %write{59,59}
+local	float	ly	%read{75,86} %write{61,61}
+local	float	hy	%read{78,89} %write{62,62}
+const	vector	$const1	0 0 0		%read{0,0} %write{2147483647,-1}
+const	string	$const2	"scm"		%read{2,2} %write{2147483647,-1}
+temp	int	$tmp1	%read{18,18} %write{3,3}
+temp	int	$tmp2	%read{18,18} %write{9,17}
+const	string	$const3	"gcd"		%read{4,4} %write{2147483647,-1}
+const	int	$const4	0		%read{7,101} %write{2147483647,-1}
+temp	int	$tmp3	%read{8,8} %write{7,7}
+temp	int	$tmp4	%read{11,16} %write{12,16}
+temp	int	$tmp5	%read{12,16} %write{12,16}
+temp	float	$tmp6	%read{21,24} %write{19,19}
+const	float	$const5	1		%read{21,62} %write{2147483647,-1}
+const	string	$const6	"mod"		%read{20,48} %write{2147483647,-1}
+temp	float	$tmp7	%read{23,23} %write{22,22}
+temp	float	$tmp8	%read{22,22} %write{21,21}
+temp	float	$tmp9	%read{24,24} %write{23,23}
+const	int	$const7	1		%read{25,104} %write{2147483647,-1}
+temp	float	$tmp10	%read{27,30} %write{25,25}
+temp	float	$tmp11	%read{29,29} %write{28,28}
+temp	float	$tmp12	%read{28,28} %write{27,27}
+temp	float	$tmp13	%read{30,30} %write{29,29}
+temp	float	$tmp14	%read{34,34} %write{33,33}
+temp	float	$tmp15	%read{33,33} %write{32,32}
+temp	float	$tmp16	%read{32,32} %write{31,31}
+temp	float	$tmp17	%read{38,38} %write{37,37}
+temp	float	$tmp18	%read{37,37} %write{36,36}
+temp	float	$tmp19	%read{36,36} %write{35,35}
+temp	float	$tmp20	%read{42,45} %write{40,40}
+temp	float	$tmp21	%read{40,40} %write{39,39}
+temp	float	$tmp22	%read{44,44} %write{43,43}
+temp	float	$tmp23	%read{43,43} %write{42,42}
+temp	float	$tmp24	%read{45,45} %write{44,44}
+temp	float	$tmp25	%read{49,52} %write{47,47}
+temp	float	$tmp26	%read{47,47} %write{46,46}
+temp	float	$tmp27	%read{51,51} %write{50,50}
+temp	float	$tmp28	%read{50,50} %write{49,49}
+temp	float	$tmp29	%read{52,52} %write{51,51}
+temp	int	$tmp30	%read{54,54} %write{53,53}
+temp	int	$tmp31	%read{55,55} %write{54,54}
+temp	int	$tmp32	%read{56,56} %write{55,55}
+temp	float	$tmp33	%read{58,58} %write{57,57}
+const	int	$const8	2		%read{82,93} %write{2147483647,-1}
+const	float	$const9	2		%read{58,61} %write{2147483647,-1}
+temp	float	$tmp34	%read{61,61} %write{60,60}
+temp	int	$tmp35	%read{65,65} %write{64,64}
+temp	int	$tmp36	%read{66,70} %write{65,69}
+temp	int	$tmp37	%read{68,68} %write{67,67}
+temp	int	$tmp38	%read{69,69} %write{68,68}
+const	float	$const10	0.5		%read{73,106} %write{2147483647,-1}
+temp	float	$tmp39	%read{74,74} %write{73,73}
+temp	int	$tmp40	%read{76,76} %write{75,75}
+temp	int	$tmp41	%read{77,81} %write{76,80}
+temp	int	$tmp42	%read{79,79} %write{78,78}
+temp	int	$tmp43	%read{80,80} %write{79,79}
+temp	float	$tmp44	%read{85,85} %write{84,84}
+temp	int	$tmp45	%read{87,87} %write{86,86}
+temp	int	$tmp46	%read{88,92} %write{87,91}
+temp	int	$tmp47	%read{90,90} %write{89,89}
+temp	int	$tmp48	%read{91,91} %write{90,90}
+temp	float	$tmp49	%read{96,96} %write{95,95}
+temp	int	$tmp50	%read{98,98} %write{97,97}
+temp	int	$tmp51	%read{99,103} %write{98,102}
+temp	int	$tmp52	%read{101,101} %write{100,100}
+temp	int	$tmp53	%read{102,102} %write{101,101}
+temp	float	$tmp54	%read{107,107} %write{106,106}
+code Vector
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:32
+#         color WarpColor = color(0.8,0,0),
+	assign		Vector $const1 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{32} %argrw{"wr"}
+code ___main___
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:44
+#     int nx = scm(skip,ny);
+	add		ny underrun overrun 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{44} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:45
+#     
+	functioncall	$const2 19 	%line{45} %argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:29
+# 
+	mul		$tmp1 skip ny 	%line{29} %argrw{"wrr"}
+	functioncall	$const3 18 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:16
+#     if (a == 0) { return b; }
+	assign		___330_a skip 	%line{16} %argrw{"wr"}
+	assign		___330_b ny 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:17
+#     while (b != 0) {
+	eq		$tmp3 ___330_a $const4 	%line{17} %argrw{"wrr"}
+	if		$tmp3 11 11 	%argrw{"r"}
+	assign		$tmp2 ___330_b 	%argrw{"wr"}
+	return
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:18
+#         if (a > b) {
+	while		$tmp4 12 13 17 17 	%line{18} %argrw{"r"}
+	neq		$tmp4 ___330_b $const4 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:19
+#             a = a - b;
+	gt		$tmp5 ___330_a ___330_b 	%line{19} %argrw{"wrr"}
+	if		$tmp5 16 17 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:20
+#         } else {
+	sub		___330_a ___330_a ___330_b 	%line{20} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:22
+#         }
+	sub		___330_b ___330_b ___330_a 	%line{22} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:25
+# }
+	assign		$tmp2 ___330_a 	%line{25} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:29
+# 
+	div		nx $tmp1 $tmp2 	%line{29} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:47
+#     float y = mod(Vector[1],1.0);
+	compref		$tmp6 Vector $const4 	%line{47} %argrw{"wrr"}
+	functioncall	$const6 25 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:135
+# float  radians (float x)  { return x*(M_PI/180.0); }
+	div		$tmp8 $tmp6 $const5 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{135} %argrw{"wrr"}
+	floor		$tmp7 $tmp8 	%argrw{"wr"}
+	mul		$tmp9 $const5 $tmp7 	%argrw{"wrr"}
+	sub		x $tmp6 $tmp9 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:48
+#     
+	compref		$tmp10 Vector $const7 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{48} %argrw{"wrr"}
+	functioncall	$const6 31 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:135
+# color  radians (color x)  { return x*(M_PI/180.0); }
+	div		$tmp12 $tmp10 $const5 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{135} %argrw{"wrr"}
+	floor		$tmp11 $tmp12 	%argrw{"wr"}
+	mul		$tmp13 $const5 $tmp11 	%argrw{"wrr"}
+	sub		y $tmp10 $tmp13 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:50
+#     int iy = int(floor(y*ny));
+	assign		$tmp16 nx 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{50} %argrw{"wr"}
+	mul		$tmp15 x $tmp16 	%argrw{"wrr"}
+	floor		$tmp14 $tmp15 	%argrw{"wr"}
+	assign		ix $tmp14 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:51
+#     
+	assign		$tmp19 ny 	%line{51} %argrw{"wr"}
+	mul		$tmp18 y $tmp19 	%argrw{"wrr"}
+	floor		$tmp17 $tmp18 	%argrw{"wr"}
+	assign		iy $tmp17 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:53
+#     float cy = mod(y*ny,1.0);
+	assign		$tmp21 nx 	%line{53} %argrw{"wr"}
+	mul		$tmp20 x $tmp21 	%argrw{"wrr"}
+	functioncall	$const6 46 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:135
+# color  degrees (color x)  { return x*(180.0/M_PI); }
+	div		$tmp23 $tmp20 $const5 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{135} %argrw{"wrr"}
+	floor		$tmp22 $tmp23 	%argrw{"wr"}
+	mul		$tmp24 $const5 $tmp22 	%argrw{"wrr"}
+	sub		cx $tmp20 $tmp24 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:54
+#     
+	assign		$tmp26 ny 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{54} %argrw{"wr"}
+	mul		$tmp25 y $tmp26 	%argrw{"wrr"}
+	functioncall	$const6 53 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:135
+# point  degrees (point x)  { return x*(180.0/M_PI); }
+	div		$tmp28 $tmp25 $const5 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{135} %argrw{"wrr"}
+	floor		$tmp27 $tmp28 	%argrw{"wr"}
+	mul		$tmp29 $const5 $tmp27 	%argrw{"wrr"}
+	sub		cy $tmp25 $tmp29 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:57
+#     
+	mul		$tmp30 skip ix 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl"} %line{57} %argrw{"wrr"}
+	add		$tmp31 iy $tmp30 	%argrw{"wrr"}
+	mod		$tmp32 $tmp31 ny 	%argrw{"wrr"}
+	lt		top $tmp32 overrun 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:59
+#     float hx = 1-lx;
+	sub		$tmp33 $const5 WarpWidth 	%line{59} %argrw{"wrr"}
+	div		lx $tmp33 $const9 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:60
+#     float ly = (1-WeftWidth)/2;
+	sub		hx $const5 lx 	%line{60} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:61
+#     float hy = 1-lx;
+	sub		$tmp34 $const5 WeftWidth 	%line{61} %argrw{"wrr"}
+	div		ly $tmp34 $const9 	%argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:62
+#     
+	sub		hy $const5 lx 	%line{62} %argrw{"wrr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:64
+#         if ( cx > lx && cx < hx ){
+	if		top 86 108 	%line{64} %argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:65
+#             Index = 1;
+	gt		$tmp35 cx lx 	%line{65} %argrw{"wrr"}
+	neq		$tmp36 $tmp35 $const4 	%argrw{"wrr"}
+	if		$tmp36 70 70 	%argrw{"r"}
+	lt		$tmp37 cx hx 	%argrw{"wrr"}
+	neq		$tmp38 $tmp37 $const4 	%argrw{"wrr"}
+	assign		$tmp36 $tmp38 	%argrw{"wr"}
+	if		$tmp36 75 86 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:66
+#             Color = WarpColor;
+	assign		Index $const7 	%line{66} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:67
+#             Dist = abs(0.5-cx);
+	assign		Color WarpColor 	%line{67} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:68
+#         } else if (cy > ly && cy < hy ){
+	sub		$tmp39 $const10 cx 	%line{68} %argrw{"wrr"}
+	abs		Dist $tmp39 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:69
+#             Index = 2;
+	gt		$tmp40 cy ly 	%line{69} %argrw{"wrr"}
+	neq		$tmp41 $tmp40 $const4 	%argrw{"wrr"}
+	if		$tmp41 81 81 	%argrw{"r"}
+	lt		$tmp42 cy hy 	%argrw{"wrr"}
+	neq		$tmp43 $tmp42 $const4 	%argrw{"wrr"}
+	assign		$tmp41 $tmp43 	%argrw{"wr"}
+	if		$tmp41 86 86 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:70
+#             Color = WeftColor;
+	assign		Index $const8 	%line{70} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:71
+#             Dist = abs(0.5-cy);
+	assign		Color WeftColor 	%line{71} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:72
+#         }
+	sub		$tmp44 $const10 cy 	%line{72} %argrw{"wrr"}
+	abs		Dist $tmp44 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:75
+#             Index = 2;
+	gt		$tmp45 cy ly 	%line{75} %argrw{"wrr"}
+	neq		$tmp46 $tmp45 $const4 	%argrw{"wrr"}
+	if		$tmp46 92 92 	%argrw{"r"}
+	lt		$tmp47 cy hy 	%argrw{"wrr"}
+	neq		$tmp48 $tmp47 $const4 	%argrw{"wrr"}
+	assign		$tmp46 $tmp48 	%argrw{"wr"}
+	if		$tmp46 97 108 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:76
+#             Color = WeftColor;
+	assign		Index $const8 	%line{76} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:77
+#             Dist = abs(0.5-cy); 
+	assign		Color WeftColor 	%line{77} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:78
+#         } else if ( cx > lx && cx < hx ){
+	sub		$tmp49 $const10 cy 	%line{78} %argrw{"wrr"}
+	abs		Dist $tmp49 	%argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:79
+#             Index = 1;
+	gt		$tmp50 cx lx 	%line{79} %argrw{"wrr"}
+	neq		$tmp51 $tmp50 $const4 	%argrw{"wrr"}
+	if		$tmp51 103 103 	%argrw{"r"}
+	lt		$tmp52 cx hx 	%argrw{"wrr"}
+	neq		$tmp53 $tmp52 $const4 	%argrw{"wrr"}
+	assign		$tmp51 $tmp53 	%argrw{"wr"}
+	if		$tmp51 108 108 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:80
+#             Color = WarpColor;
+	assign		Index $const7 	%line{80} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:81
+#             Dist = abs(0.5-cx); 
+	assign		Color WarpColor 	%line{81} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Cloth/MAweave.osl:82
+#         }
+	sub		$tmp54 $const10 cx 	%line{82} %argrw{"wrr"}
+	abs		Dist $tmp54 	%argrw{"wr"}
+	end

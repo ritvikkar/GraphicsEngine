@@ -426,14 +426,14 @@ int initializeShaderProgram(void) {
             \
             fragColor = vec4(0.0);\
             if (cosAGam >= lightACos) {\
-                fragColor = vec4(diffARefl + specARefl, 1.0);\
+                fragColor = vec4(diffARefl + specARefl, 1);\
             } else {\
-                fragColor = vec4(ambInt * diffARefl, 1.0);\
+                fragColor = vec4(ambInt * diffARefl, 1);\
             }\
             if (cosBGam >= lightBCos) {\
-                fragColor += vec4(diffBRefl + specBRefl, 1.0);\
+                fragColor += vec4(diffBRefl + specBRefl, 1);\
             } else {\
-                fragColor += vec4(ambInt * diffBRefl, 1.0);\
+                fragColor += vec4(ambInt * diffBRefl, 1);\
             }\
         }";
     program = makeProgram(vertexCode, fragmentCode);
@@ -489,6 +489,7 @@ void render(void) {
 
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1, 0, 1, 1);
     glUseProgram(program);
     camRender(&cam, viewingLoc);
     GLfloat vec[3];

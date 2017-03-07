@@ -1,0 +1,18 @@
+shader toon(
+    color Color_Diffuse = color(1, 0.64, 0.47),
+    color Color_Specular = 0.1,
+    color Color_Shade = color(0.7, 0.3, 0.2),
+    float Size_Diffuse = 0.9,
+    float Smooth_Diffuse = 0.0,
+    float Size_Specular = 0.2,
+    float Smooth_Specular = 0.0,
+    output closure color BSDF = 0)
+{
+    if (isdiffuseray() > 0.5) {
+        BSDF = 0.0 * emission();
+    } else {
+        BSDF = Color_Diffuse * diffuse_toon(N, Size_Diffuse, Smooth_Diffuse)
+         + Color_Specular * glossy_toon(N, Size_Specular, Smooth_Specular)
+         + Color_Shade * emission();
+    }
+}

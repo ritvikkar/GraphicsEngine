@@ -1,0 +1,58 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.7.1
+# options: -o /Users/Martin/Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.oso -I/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader
+shader edge
+param	color	Color	0 0 0		%read{18,18} %write{2147483647,-1}
+oparam	closure color	BSDF			%read{2147483647,-1} %write{16,18}
+temp	int	$tmp1	%read{2,2} %write{1,1}
+const	string	$const1	"iscameraray"		%read{0,0} %write{2147483647,-1}
+const	string	$const2	"camera"		%read{1,1} %write{2147483647,-1}
+temp	int	$tmp2	%read{3,3} %write{2,2}
+const	int	$const3	0		%read{2,13} %write{2147483647,-1}
+temp	int	$tmp3	%read{4,10} %write{3,9}
+temp	int	$tmp4	%read{7,7} %write{6,6}
+const	string	$const4	"isglossyray"		%read{5,5} %write{2147483647,-1}
+const	string	$const5	"glossy"		%read{6,6} %write{2147483647,-1}
+temp	int	$tmp5	%read{8,8} %write{7,7}
+temp	int	$tmp6	%read{9,9} %write{8,8}
+temp	int	$tmp7	%read{11,15} %write{10,14}
+temp	int	$tmp8	%read{13,13} %write{12,12}
+temp	int	$tmp9	%read{14,14} %write{13,13}
+const	string	$const6	"transparent"		%read{16,16} %write{2147483647,-1}
+temp	closure color	$tmp10	%read{18,18} %write{17,17}
+const	string	$const7	"emission"		%read{17,17} %write{2147483647,-1}
+code ___main___
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl:6
+#         BSDF = transparent();
+	functioncall	$const1 2 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl"} %line{6} %argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:598
+# 
+	raytype		$tmp1 $const2 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{598} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl:6
+#         BSDF = transparent();
+	eq		$tmp2 $tmp1 $const3 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl"} %line{6} %argrw{"wrr"}
+	neq		$tmp3 $tmp2 $const3 	%argrw{"wrr"}
+	if		$tmp3 10 10 	%argrw{"r"}
+	functioncall	$const4 7 	%argrw{"r"}
+# /Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h:600
+# // Renderer state
+	raytype		$tmp4 $const5 	%filename{"/Applications/blender-2.77a-OSX_10.6-x86_64/blender.app/Contents/Resources/2.77/scripts/addons/cycles/shader/stdosl.h"} %line{600} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl:6
+#         BSDF = transparent();
+	eq		$tmp5 $tmp4 $const3 	%filename{"Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl"} %line{6} %argrw{"wrr"}
+	neq		$tmp6 $tmp5 $const3 	%argrw{"wrr"}
+	assign		$tmp3 $tmp6 	%argrw{"wr"}
+	neq		$tmp7 $tmp3 $const3 	%argrw{"wrr"}
+	if		$tmp7 12 15 	%argrw{"r"}
+	backfacing	$tmp8 	%argrw{"w"}
+	neq		$tmp9 $tmp8 $const3 	%argrw{"wrr"}
+	assign		$tmp7 $tmp9 	%argrw{"wr"}
+	if		$tmp7 17 19 	%argrw{"r"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl:7
+#     else
+	closure		BSDF $const6 	%line{7} %argrw{"wr"}
+# Dropbox/School/Junior Year/CS 311 Graphics/Ritvik Git/Final Project/OSL Sample Code/Other/Toon Shader/edge.osl:9
+# }
+	closure		$tmp10 $const7 	%line{9} %argrw{"wr"}
+	mul		BSDF $tmp10 Color 	%argrw{"wrr"}
+	end
