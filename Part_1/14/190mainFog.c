@@ -4,12 +4,14 @@
  * CS 331: Computer Graphics
 */
 
+// clang 190mainFog.c 000pixel.o -lglfw -framework OpenGL
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
 
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 #include "000pixel.h"
 #include "100vector.c"
 #include "130matrix.c"
